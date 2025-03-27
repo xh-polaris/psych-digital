@@ -6,8 +6,6 @@ import (
 	"github.com/xh-polaris/psych-digital/biz/domain/chat"
 )
 
-type WsHandler func(ctx context.Context, conn *websocket.Conn)
-
 // ChatHandler 处理长对话 TODO: 应该需要加上超时处理，避免连接空置太长时间
 func ChatHandler(ctx context.Context, conn *websocket.Conn) {
 	var err error

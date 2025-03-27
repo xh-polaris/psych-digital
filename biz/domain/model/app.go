@@ -30,12 +30,30 @@ type TtsApp interface {
 	// Start 建立application级连接
 	Start() error
 
-	// Send 发送请求
+	// Send 发送文字请求
 	Send(texts string) error
 
-	// Receive 接受响应
+	// Receive 接受音频流响应
 	Receive() []byte
 
 	// Close 断开连接, 释放资源
+	Close() error
+}
+
+// AsrApp 是第三方通用语音识别的抽象
+type AsrApp interface {
+	// Dial 建立ws连接
+	Dial() error
+
+	// Start 建立application级连接
+	Start() error
+
+	// Send 发送音频流
+	Send(bytes []byte) error
+
+	// Receive 接受文字
+	Receive() string
+
+	// Close  关闭连接, 释放资源
 	Close() error
 }

@@ -3,6 +3,7 @@ package adaptor
 import (
 	"context"
 	"errors"
+	"github.com/hertz-contrib/websocket"
 	"github.com/xh-polaris/gopkg/util"
 	"github.com/xh-polaris/gopkg/util/log"
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/consts"
@@ -16,6 +17,23 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 	"google.golang.org/grpc/status"
 )
+
+type wsHandler func(ctx context.Context, conn *websocket.Conn)
+
+// upgrader 默认配置的协议升级器, 用于将HTTP请求升级为WebSocket请求
+var upgrader = websocket.HertzUpgrader{}
+
+// UpgradeWs 将Http协议升级为WebSocket协议
+func UpgradeWs(ctx context.Context, c *app.RequestContext, handler wsHandler) error {
+	// 尝试升级协议, 处理请求
+	err := upgrader.Upgrade(c, func(conn *websocket.Conn) {
+		handler(ctx, conn)
+	})
+	if err != nil {
+		return consts.ErrWsUpgrade
+	}
+	return nil
+}
 
 var _ propagation.TextMapCarrier = &headerProvider{}
 

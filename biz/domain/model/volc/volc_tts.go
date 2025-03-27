@@ -8,6 +8,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"github.com/xh-polaris/gopkg/util/log"
 	"io"
 	"net/http"
 	"strconv"
@@ -249,8 +250,10 @@ func (app *VcTtsApp) Receive() []byte {
 		case MsgTypeFullServer:
 			glog.Infof("Receive text message (event=%s, session_id=%s): %s", Event(msg.Event), msg.SessionID, msg.Payload)
 			if msg.Event == int32(EventSessionFinished) {
+				log.Info("event type:", msg.Event)
 				return nil
 			}
+			continue
 
 		case MsgTypeAudioOnlyServer:
 			glog.Infof("Receive audio message (event=%s): session_id=%s", Event(msg.Event), msg.SessionID)

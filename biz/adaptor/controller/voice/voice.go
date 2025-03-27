@@ -1,4 +1,4 @@
-package chat
+package voice
 
 import (
 	"context"
@@ -8,10 +8,10 @@ import (
 	"github.com/xh-polaris/psych-digital/biz/application/service"
 )
 
-// LongChat 开启一轮长对话
-// @router /chat/ [GET]
-func LongChat(ctx context.Context, c *app.RequestContext) {
-	// 尝试升级协议, 并处理
+// Asr 通用语音识别
+// @router /voice/asr [GET]
+func Asr(ctx context.Context, c *app.RequestContext) {
+	// 尝试升级协议
 	err := adaptor.UpgradeWs(ctx, c, service.ChatHandler)
 	if err != nil {
 		log.Error(err.Error())

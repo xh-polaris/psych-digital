@@ -11,3 +11,5 @@ func _rootMw() []app.HandlerFunc {
 func _longchatMw() []app.HandlerFunc {
 	return nil
 }
+
+func _asrMw() []app.HandlerFunc { return nil }
