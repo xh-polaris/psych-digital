@@ -11,10 +11,31 @@ type ChatApp interface {
 
 	// StreamCall 流式调用, 默认应该采用增量输出, 即后续的输出不包括之前的输出
 	StreamCall(msg string) (ChatAppScanner, error)
+
+	// Close 关闭资源
+	Close() error
 }
 
 // ChatAppScanner 是第三方对话调用的响应
 type ChatAppScanner interface {
 	Next() (*dto.ChatData, error)
+	Close() error
+}
+
+// TtsApp 是第三方语音合成大模型的抽象
+type TtsApp interface {
+	// Dial 建立ws连接
+	Dial() error
+
+	// Start 建立application级连接
+	Start() error
+
+	// Send 发送请求
+	Send(texts string) error
+
+	// Receive 接受响应
+	Receive() []byte
+
+	// Close 断开连接, 释放资源
 	Close() error
 }

@@ -23,6 +23,14 @@ type BaiLian struct {
 	ApiKey string
 }
 
+type VolcTts struct {
+	Url        string
+	AppKey     string
+	AccessKey  string
+	Speaker    string
+	ResourceId string
+}
+
 type Config struct {
 	service.ServiceConf
 	ListenOn string
@@ -35,6 +43,7 @@ type Config struct {
 	Cache   cache.CacheConf
 	Redis   *redis.RedisConf
 	BaiLian BaiLian
+	VolcTts VolcTts
 }
 
 func NewConfig() (*Config, error) {

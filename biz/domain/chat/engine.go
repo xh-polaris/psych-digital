@@ -7,6 +7,8 @@ import (
 	"github.com/xh-polaris/gopkg/util/log"
 	"github.com/xh-polaris/psych-digital/biz/application/dto"
 	"github.com/xh-polaris/psych-digital/biz/domain/model"
+	"github.com/xh-polaris/psych-digital/biz/domain/model/bailian"
+	"github.com/xh-polaris/psych-digital/biz/domain/model/volc"
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/config"
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/consts"
 	"io"
@@ -29,11 +31,15 @@ type Engine struct {
 	// rs *RedisHelper
 	rs *MemoryRedisHelper
 
-	// sessionId 是本轮对话的唯一标记, 只有第一次调用时会写入, 应该不需要互斥锁
-	sessionId string
-
 	// chatApp 是调用的对话大模型
 	chatApp model.ChatApp
+
+	// ttsApp 是调用的语音合成大模型
+	ttsApp model.TtsApp
+
+	// sessionId 是本轮对话的唯一标记, 只有第一次调用时会写入, 应该不需要互斥锁
+	// 目前使用的是BaiLian提供的sessionId管理, 如果有更好的方式, 可以考虑自己实现
+	sessionId string
 
 	// aiHistory 记录AI输出历史
 	aiHistory chan string
@@ -44,27 +50,33 @@ type Engine struct {
 	// outw ai的流式文本, 用于语音合成
 	outw chan string
 
+	// outv 合成的流式语音
+	outv chan []byte
+
 	// stop 用于打断AI输出
 	stop chan bool
 }
 
-// NewChatEngine 初始化一个ChatEngine
-func NewChatEngine(ctx context.Context, conn *websocket.Conn) *Engine {
+// NewEngine 初始化一个ChatEngine
+// 暂时先固定为BaiLian之后类型多再换成工厂方法
+func NewEngine(ctx context.Context, conn *websocket.Conn) *Engine {
 	ctx, cancel := context.WithCancel(context.Background())
-	// 暂时先固定为BaiLian之后类型多再换成工厂方法
 	c := config.GetConfig()
-	return &Engine{
+	e := &Engine{
 		ctx:    ctx,
 		cancel: cancel,
 		ws:     NewWsHelper(conn),
 		//rs:      NewRedisHelper(c),
 		rs:          NewMemoryRedisHelper(),
-		chatApp:     model.NewBLChatApp(c.BaiLian.AppId, c.BaiLian.ApiKey),
+		chatApp:     bailian.NewBLChatApp(c.BaiLian.AppId, c.BaiLian.ApiKey),
+		ttsApp:      volc.NewVcTtsApp(c.VolcTts.AppKey, c.VolcTts.AccessKey, c.VolcTts.Speaker, c.VolcTts.ResourceId, c.VolcTts.Url),
 		aiHistory:   make(chan string, 10),
 		userHistory: make(chan string, 10),
 		outw:        make(chan string, 50),
+		outv:        make(chan []byte, 50),
 		stop:        make(chan bool),
 	}
+	return e
 }
 
 // Start 开始一轮对话, 执行相关初始化
@@ -78,10 +90,14 @@ func (e *Engine) Start() error {
 	}
 
 	msg := "你好呀, 请问你是谁"
-	// 音频生成
-	go e.TTS()
 
-	go e.StreamCall(msg)
+	// 音频生成
+	if err = e.tts(); err != nil {
+		return err
+	}
+
+	// chat模型调用
+	go e.streamCall(msg)
 
 	// 由于sessionId由第三方给出, 所以这里需要手动管理聊天记录的顺序
 	// 等待获取sessionId, 初始化redis
@@ -111,19 +127,18 @@ func (e *Engine) validate() bool {
 	return true
 }
 
-// Chat 长对话的主体部分
+// Chat 长对话的主体部分 #生产者
 func (e *Engine) Chat() {
 	var req dto.ChatReq
 	var err error
-
 	defer func() {
 		if err != nil {
 			log.Error("chat err:", err)
 		}
 	}()
 
-	// 处理聊天记录
-	go e.History()
+	// 启动聊天记录处理
+	go e.history(e.aiHistory, e.userHistory)
 
 	for {
 		// 获取前端对话内容
@@ -131,22 +146,19 @@ func (e *Engine) Chat() {
 		if err != nil {
 			return
 		}
-
 		// 判断是否结束
 		if req.Cmd == consts.EndCmd {
 			return
 		}
-
 		// 写入用户消息
 		e.userHistory <- req.Msg
-
-		// 读取用户输入
-		go e.StreamCall(req.Msg)
+		// 调用ai, 流式响应
+		go e.streamCall(req.Msg)
 	}
 }
 
-// StreamCall 调用chatApp并流式写入响应
-func (e *Engine) StreamCall(msg string) {
+// streamCall 调用chatApp并流式写入响应 #生产者
+func (e *Engine) streamCall(msg string) {
 	var record string
 	var data *dto.ChatData
 
@@ -168,10 +180,6 @@ func (e *Engine) StreamCall(msg string) {
 		select {
 		case <-e.ctx.Done():
 			return
-		// 用于打断, TODO: 效果不好的话就删掉
-		case <-e.stop:
-			err = e.ws.WriteJson(dto.StopData)
-			return
 		default:
 			// 获取下一次响应
 			data, err = scanner.Next()
@@ -185,45 +193,86 @@ func (e *Engine) StreamCall(msg string) {
 
 			// 写入文本, 用于音频合成
 			e.outw <- data.Content
-
 			// 写入响应 TODO: test待删除
 			log.Info("data: ", data)
 			err = e.ws.WriteJson(data)
 			if err != nil {
 				return
 			}
-
 			// 拼接聊天记录
 			record += data.Content
 		}
 	}
 }
 
-// TTS 音频合成
-func (e *Engine) TTS() {
-	for {
-		select {
-		case <-e.ctx.Done():
+// tts 初始化tts app 并启动发送和接受goroutine
+func (e *Engine) tts() error {
+	err := e.ttsInit()
+	if err != nil {
+		return err
+	}
+	go e.ttsUp(e.outw)
+	go e.ttsDown()
+	return nil
+}
+
+// ttsInit 初始话音频生成
+func (e *Engine) ttsInit() (err error) {
+	if err = e.ttsApp.Dial(); err != nil {
+		return
+	}
+	if err = e.ttsApp.Start(); err != nil {
+		return
+	}
+	return
+}
+
+// ttsUp 上传合成音频用文字 #消费者
+func (e *Engine) ttsUp(texts chan string) {
+	var err error
+
+	for text := range texts {
+		if err = e.ttsApp.Send(text); err != nil {
+			log.Error("send tts err:", err)
 			return
-		// TODO 暂时用日志模拟
-		case word := <-e.outw:
-			log.Info("音频合成: ", word)
 		}
 	}
 }
 
-// History 处理聊天记录
-func (e *Engine) History() {
+// ttsDown 获取生成的音频 #生产者
+func (e *Engine) ttsDown() {
 	for {
 		select {
 		case <-e.ctx.Done():
 			return
-		case his := <-e.aiHistory:
+		default:
+			audio := e.ttsApp.Receive()
+			if audio != nil {
+				err := e.ws.WriteBytes(audio)
+				if err != nil {
+					log.Error("ws write audio err:", err)
+				}
+			}
+		}
+	}
+}
+
+// history 处理聊天记录 #消费者
+func (e *Engine) history(ai, user chan string) {
+	for {
+		select {
+		case his, ok := <-ai:
+			if !ok {
+				ai = nil
+			}
 			err := e.rs.AddAi(e.sessionId, his)
 			if err != nil {
 				log.Error("ai history err:", err)
 			}
-		case his := <-e.userHistory:
+		case his, ok := <-user:
+			if !ok {
+				user = nil
+			}
 			err := e.rs.AddUser(e.sessionId, his)
 			if err != nil {
 				log.Error("user history err:", err)
@@ -244,12 +293,28 @@ func (e *Engine) End() {
 		log.Error(err.Error())
 		return
 	}
-
 	// 关闭所有协程
 	e.cancel()
 }
 
 // close 释放相关资源
-func (e *Engine) close() error {
-	return e.ws.Close()
+// 所有的通道由close统一关闭, 生产者不负责关闭, 生成者由ctx.Done()关闭
+// 消费者需要因为所有的通道关闭结束
+func (e *Engine) close() (err error) {
+	close(e.aiHistory)
+	close(e.userHistory)
+	close(e.outw)
+	close(e.outv)
+	close(e.stop)
+
+	if err = e.ws.Close(); err != nil {
+		log.Error("close ws err:", err)
+	}
+	if err = e.chatApp.Close(); err != nil {
+		log.Error("close chat err:", err)
+	}
+	if err = e.ttsApp.Close(); err != nil {
+		log.Error("close tts err:", err)
+	}
+	return
 }

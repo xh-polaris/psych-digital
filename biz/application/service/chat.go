@@ -13,8 +13,9 @@ func ChatHandler(ctx context.Context, conn *websocket.Conn) {
 	var err error
 
 	// 初始化本轮对话的engine
-	engine := chat.NewChatEngine(ctx, conn)
+	engine := chat.NewEngine(ctx, conn)
 	defer func() { engine.End() }()
+
 	// 执行初始化操作
 	err = engine.Start()
 	if err != nil {
@@ -22,5 +23,4 @@ func ChatHandler(ctx context.Context, conn *websocket.Conn) {
 	}
 
 	engine.Chat()
-
 }

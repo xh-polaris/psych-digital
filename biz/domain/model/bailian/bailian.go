@@ -1,10 +1,11 @@
-package model
+package bailian
 
 import (
 	"bufio"
 	"encoding/json"
 	"fmt"
 	"github.com/xh-polaris/psych-digital/biz/application/dto"
+	"github.com/xh-polaris/psych-digital/biz/domain/model"
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/consts"
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/util"
 	"io"
@@ -25,7 +26,7 @@ type BLChatApp struct {
 }
 
 // NewBLChatApp 创建一个百炼模型应用实例
-func NewBLChatApp(appId string, apiKey string) ChatApp {
+func NewBLChatApp(appId string, apiKey string) model.ChatApp {
 	app := &BLChatApp{
 		appId:  appId,
 		apiKey: apiKey,
@@ -55,7 +56,7 @@ func (app *BLChatApp) Call(msg string) {
 }
 
 // StreamCall 流式调用
-func (app *BLChatApp) StreamCall(msg string) (ChatAppScanner, error) {
+func (app *BLChatApp) StreamCall(msg string) (model.ChatAppScanner, error) {
 	client := util.GetHttpClient()
 
 	// 设置调用提示词
@@ -67,6 +68,12 @@ func (app *BLChatApp) StreamCall(msg string) (ChatAppScanner, error) {
 		return nil, err
 	}
 	return newBLChatAppScanner(reader), nil
+}
+
+// Close 释放相关资源
+// BLChat暂时没有需要释放的资源
+func (app *BLChatApp) Close() error {
+	return nil
 }
 
 // BLChatAppScanner 是百炼对话调用的响应
