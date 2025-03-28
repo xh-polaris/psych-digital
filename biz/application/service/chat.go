@@ -12,7 +12,7 @@ func ChatHandler(ctx context.Context, conn *websocket.Conn) {
 
 	// 初始化本轮对话的engine
 	engine := chat.NewEngine(ctx, conn)
-	defer func() { engine.End() }()
+	defer func() { engine.Close() }()
 
 	// 执行初始化操作
 	err = engine.Start()

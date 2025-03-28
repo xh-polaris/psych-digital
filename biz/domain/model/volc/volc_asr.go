@@ -2,6 +2,7 @@ package volc
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -155,10 +156,10 @@ func (app *VcAsrApp) Send(data []byte) error {
 }
 
 // Receive 接受响应
-func (app *VcAsrApp) Receive() ([]byte, error) {
+func (app *VcAsrApp) Receive() (string, error) {
 	mt, res, err := app.ws.ReadMessage()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	switch mt {
@@ -167,24 +168,36 @@ func (app *VcAsrApp) Receive() ([]byte, error) {
 	case websocket.TextMessage:
 		return app.receiveText(res)
 	default:
-		return nil, fmt.Errorf("invalid websocket message")
+		return "", fmt.Errorf("invalid websocket message")
 	}
 }
 
-// receiveText 接受到文本消息
-func (app *VcAsrApp) receiveText(res []byte) ([]byte, error) {
+// receiveText 接受到文本消息, 暂无实际用途
+func (app *VcAsrApp) receiveText(res []byte) (string, error) {
 	log.Info("receiveText: ", string(res))
-	return nil, nil
+	return "", nil
 }
 
 // receiveBytes 接收到字节流
-func (app *VcAsrApp) receiveBytes(res []byte) ([]byte, error) {
+func (app *VcAsrApp) receiveBytes(res []byte) (string, error) {
 	data, seq, err := parse(res)
-	// seq 小于0 表示这是最后一个包, 后续没有了
+	// seq 小于0 表示这是最后一个包, 后续没有了, 暂时没有通过这个来中止
 	if err != nil || seq < 0 {
-		return nil, err
+		return "", err
 	}
-	return data, err
+
+	// 反序列化, 提前识别后的文字
+	r := make(map[string]any)
+	err = json.Unmarshal(data, &r)
+	if err != nil {
+		return "", err
+	}
+
+	text, ok := r["result"].(map[string]any)["text"].(string)
+	if !ok {
+		return "", errors.New("invalid result")
+	}
+	return text, nil
 }
 
 // Close 释放资源

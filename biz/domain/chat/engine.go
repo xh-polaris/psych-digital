@@ -25,11 +25,11 @@ type Engine struct {
 	cancel context.CancelFunc
 
 	// ws 提供WebSocket的读写功能
-	ws *WsHelper
+	ws *model.WsHelper
 
 	// rs 提供redis的读写功能 TODO: 此处用于测试，暂时不用redis
 	// rs *RedisHelper
-	rs *MemoryRedisHelper
+	rs *model.MemoryRedisHelper
 
 	// chatApp 是调用的对话大模型
 	chatApp model.ChatApp
@@ -65,9 +65,9 @@ func NewEngine(ctx context.Context, conn *websocket.Conn) *Engine {
 	e := &Engine{
 		ctx:    ctx,
 		cancel: cancel,
-		ws:     NewWsHelper(conn),
+		ws:     model.NewWsHelper(conn),
 		//rs:      NewRedisHelper(c),
-		rs:          NewMemoryRedisHelper(),
+		rs:          model.NewMemoryRedisHelper(),
 		chatApp:     bailian.NewBLChatApp(c.BaiLian.AppId, c.BaiLian.ApiKey),
 		ttsApp:      volc.NewVcTtsApp(c.VolcTts.AppKey, c.VolcTts.AccessKey, c.VolcTts.Speaker, c.VolcTts.ResourceId, c.VolcTts.Url),
 		aiHistory:   make(chan string, 10),
@@ -281,8 +281,8 @@ func (e *Engine) history(ai, user chan string) {
 	}
 }
 
-// End 结束本轮对话
-func (e *Engine) End() {
+// Close 结束本轮对话
+func (e *Engine) Close() {
 	defer func() { _ = e.close() }()
 
 	err := e.ws.WriteJSON(&dto.ChatEndResp{

@@ -12,7 +12,7 @@ import (
 // @router /voice/asr [GET]
 func Asr(ctx context.Context, c *app.RequestContext) {
 	// 尝试升级协议
-	err := adaptor.UpgradeWs(ctx, c, service.ChatHandler)
+	err := adaptor.UpgradeWs(ctx, c, service.AsrHandler)
 	if err != nil {
 		log.Error(err.Error())
 	}

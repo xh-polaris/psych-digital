@@ -51,6 +51,7 @@ type Config struct {
 	Redis   *redis.RedisConf
 	BaiLian BaiLian
 	VolcTts VolcTts
+	VolcAsr VolcAsr
 }
 
 func NewConfig() (*Config, error) {

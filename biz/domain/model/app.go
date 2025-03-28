@@ -52,7 +52,7 @@ type AsrApp interface {
 	Send(bytes []byte) error
 
 	// Receive 接受文字
-	Receive() string
+	Receive() (string, error)
 
 	// Close  关闭连接, 释放资源
 	Close() error

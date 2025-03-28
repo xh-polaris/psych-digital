@@ -1,4 +1,4 @@
-package chat
+package model
 
 import (
 	"github.com/hertz-contrib/websocket"
@@ -24,6 +24,15 @@ func NewWsHelper(conn *websocket.Conn) *WsHelper {
 // Read 获取消息
 func (ws *WsHelper) Read() (int, []byte, error) {
 	return ws.conn.ReadMessage()
+}
+
+// ReadBytes 获取字节流
+func (ws *WsHelper) ReadBytes() ([]byte, error) {
+	mt, data, err := ws.Read()
+	if mt != websocket.BinaryMessage {
+		return nil, err
+	}
+	return data, nil
 }
 
 // ReadJSON 从流中获取一个Json对象， 需要传入指针
