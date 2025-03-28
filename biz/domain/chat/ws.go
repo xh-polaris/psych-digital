@@ -1,13 +1,9 @@
 package chat
 
 import (
-	"encoding/json"
-	"fmt"
 	"github.com/hertz-contrib/websocket"
-	"github.com/xh-polaris/gopkg/util/log"
 	"github.com/xh-polaris/psych-digital/biz/application/dto"
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/consts"
-	"reflect"
 	"sync"
 )
 
@@ -30,35 +26,10 @@ func (ws *WsHelper) Read() (int, []byte, error) {
 	return ws.conn.ReadMessage()
 }
 
-// ReadJson 从流中获取一个Json对象， 需要传入指针
-func (ws *WsHelper) ReadJson(obj any) error {
+// ReadJSON 从流中获取一个Json对象， 需要传入指针
+func (ws *WsHelper) ReadJSON(obj any) error {
 	// 读取消息
-	mt, msg, err := ws.conn.ReadMessage()
-
-	// 需要文本类型
-	if mt != websocket.TextMessage {
-		return fmt.Errorf("invalid message type")
-	}
-
-	if err != nil {
-		log.Error("read message error:", err)
-		return err
-	}
-
-	// 不同类型处理
-	switch reflect.TypeOf(obj).Kind() {
-	case reflect.Ptr:
-		err = json.Unmarshal(msg, obj)
-	default:
-		err = fmt.Errorf("obj must be a pointer")
-	}
-
-	// 解析Json
-	if err != nil {
-		log.Error("unmarshal message error:", err)
-		return err
-	}
-	return nil
+	return ws.conn.ReadJSON(obj)
 }
 
 // Error 写入一个错误信息
@@ -67,20 +38,15 @@ func (ws *WsHelper) Error(errno *consts.Errno) error {
 		Code: errno.Code(),
 		Msg:  errno.Error(),
 	}
-	return ws.WriteJson(resp)
+	return ws.WriteJSON(resp)
 }
 
-// WriteJson 写入一个Json对象
-func (ws *WsHelper) WriteJson(obj any) error {
+// WriteJSON 写入一个Json对象
+func (ws *WsHelper) WriteJSON(obj any) error {
 	ws.mu.Lock()
 	defer ws.mu.Unlock()
 
-	bytes, err := json.Marshal(obj)
-	if err != nil {
-		return err
-	}
-
-	return ws.conn.WriteMessage(websocket.TextMessage, bytes)
+	return ws.conn.WriteJSON(obj)
 }
 
 // WriteBytes 写入字节流

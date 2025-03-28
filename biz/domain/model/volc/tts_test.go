@@ -8,21 +8,21 @@ import (
 
 // 测试前请替换以下参数为有效值
 const (
-	testUrl        = "wss://openspeech.bytedance.com/api/v3/tts/bidirection"
-	testAppKey     = "8390064657"
-	testAccessKey  = "4Y-BEHltDMMGtnEFg85xdiifFsGlGlBS"
-	testSpeaker    = "zh_female_roumeinvyou_emo_v2_mars_bigtts"
-	testResourceId = "volc.service_type.10029"
+	testTtsUrl        = "wss://openspeech.bytedance.com/api/v3/tts/bidirection"
+	testTtsAppKey     = "8390064657"
+	testTtsAccessKey  = "4Y-BEHltDMMGtnEFg85xdiifFsGlGlBS"
+	testTtsSpeaker    = "zh_female_roumeinvyou_emo_v2_mars_bigtts"
+	testTtsResourceId = "volc.service_type.10029"
 )
 
 func TestTTSGeneration(t *testing.T) {
 	// 初始化TTS应用
 	app := NewVcTtsApp(
-		testAppKey,
-		testAccessKey,
-		testSpeaker,
-		testResourceId,
-		testUrl,
+		testTtsAppKey,
+		testTtsAccessKey,
+		testTtsSpeaker,
+		testTtsResourceId,
+		testTtsUrl,
 	)
 
 	// 建立连接

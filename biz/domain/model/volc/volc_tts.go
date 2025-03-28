@@ -17,8 +17,8 @@ import (
 )
 
 // VcTtsApp 是火山引擎的大模型语音合成
-// 默认双向流式, 暂定一轮对话共用一个连接, 如果太长了就一段话一个连接
-// 默认使用MP3格式, 2400采样频率
+// 默认双向流式, 暂定一次对话共用一个连接, 如果太长了之后就一轮话一个连接
+// 默认使用PCM格式, 24000采样频率
 type VcTtsApp struct {
 	// ws 连接
 	ws *websocket.Conn
@@ -81,10 +81,11 @@ func (app *VcTtsApp) Start() (err error) {
 		return
 	}
 	namespace := "BidirectionalTTS"
+	// TODO: 之后可能需要指定采样频率
 	params := &TTSReqParams{
 		Speaker: app.speaker,
 		AudioParams: &AudioParams{
-			Format:     "mp3",
+			Format:     "pcm",
 			SampleRate: 24000,
 		},
 	}

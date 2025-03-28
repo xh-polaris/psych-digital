@@ -118,7 +118,7 @@ func (e *Engine) Start() error {
 func (e *Engine) validate() bool {
 	var startReq dto.ChatStartReq
 
-	err := e.ws.ReadJson(&startReq)
+	err := e.ws.ReadJSON(&startReq)
 	if err != nil {
 		log.Error("read json err:", err)
 		return false
@@ -142,7 +142,7 @@ func (e *Engine) Chat() {
 
 	for {
 		// 获取前端对话内容
-		err = e.ws.ReadJson(&req)
+		err = e.ws.ReadJSON(&req)
 		if err != nil {
 			return
 		}
@@ -195,7 +195,7 @@ func (e *Engine) streamCall(msg string) {
 			e.outw <- data.Content
 			// 写入响应 TODO: test待删除
 			log.Info("data: ", data)
-			err = e.ws.WriteJson(data)
+			err = e.ws.WriteJSON(data)
 			if err != nil {
 				return
 			}
@@ -285,7 +285,7 @@ func (e *Engine) history(ai, user chan string) {
 func (e *Engine) End() {
 	defer func() { _ = e.close() }()
 
-	err := e.ws.WriteJson(&dto.ChatEndResp{
+	err := e.ws.WriteJSON(&dto.ChatEndResp{
 		Code: 0,
 		Msg:  "对话结束",
 	})

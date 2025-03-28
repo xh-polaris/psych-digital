@@ -31,6 +31,13 @@ type VolcTts struct {
 	ResourceId string
 }
 
+type VolcAsr struct {
+	Url        string
+	AppKey     string
+	AccessKey  string
+	ResourceId string
+}
+
 type Config struct {
 	service.ServiceConf
 	ListenOn string
