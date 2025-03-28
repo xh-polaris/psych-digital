@@ -37,7 +37,7 @@ func TestTTSGeneration(t *testing.T) {
 	}
 
 	// 创建输出文件
-	outputFile, err := os.Create("./output.mp3")
+	outputFile, err := os.Create("./output.pcm")
 	if err != nil {
 		t.Fatalf("创建文件失败: %v", err)
 	}
@@ -55,6 +55,8 @@ func TestTTSGeneration(t *testing.T) {
 				return
 			}
 		}
+		time.Sleep(10 * time.Second)
+		app.Close()
 	}()
 
 	for {

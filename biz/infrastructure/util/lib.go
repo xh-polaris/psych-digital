@@ -3,22 +3,18 @@ package util
 import (
 	"bytes"
 	"compress/gzip"
+	"encoding/binary"
 	"fmt"
 	"io"
 )
 
 // GzipCompress 按照gzip的方式压缩
 func GzipCompress(data []byte) ([]byte, error) {
-	var buf bytes.Buffer
-	var err error
-	gz := gzip.NewWriter(&buf)
-	defer func() { _ = gz.Close() }()
-
-	_, err = gz.Write(data)
-	if err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
+	var b bytes.Buffer
+	w := gzip.NewWriter(&b)
+	_, _ = w.Write(data)
+	_ = w.Close()
+	return b.Bytes(), nil
 }
 
 // GzipDecompress 解压
@@ -43,4 +39,19 @@ func GzipDecompress(src []byte) ([]byte, error) {
 
 	// 4. 返回解压结果
 	return buf.Bytes(), nil
+}
+
+// IntToBytes 将整数变成字节数组
+func IntToBytes(n int) []byte {
+	b := make([]byte, 4)
+	binary.BigEndian.PutUint32(b, uint32(n))
+	return b
+}
+
+// BytesToInt 将字节数组变成整数
+func BytesToInt(data []byte) (int, error) {
+	if len(data) != 4 || data == nil {
+		return 0, fmt.Errorf("BytesToInt err")
+	}
+	return int(binary.BigEndian.Uint32(data)), nil
 }

@@ -11,12 +11,12 @@ import (
 )
 
 const (
-	testAsrAppKey     = "your_app_key"
-	testAsrAccessKey  = "your_access_key"
-	testAsrResourceId = "your_resource_id"
-	testAsrURL        = "wss://your-asr-service-url"
+	testAsrURL        = "wss://openspeech.bytedance.com/api/v3/sauc/bigmodel"
+	testAsrAppKey     = "8390064657"
+	testAsrAccessKey  = "4Y-BEHltDMMGtnEFg85xdiifFsGlGlBS"
+	testAsrResourceId = "volc.bigasr.sauc.duration"
 
-	inputFile  = "input.pcm"  // 16位单声道PCM文件
+	inputFile  = "output.pcm" // 16位单声道PCM文件
 	outputFile = "output.txt" // 识别结果保存路径
 )
 
@@ -29,7 +29,6 @@ func TestASRStreaming(t *testing.T) {
 	if err := asrApp.Dial(); err != nil {
 		t.Fatalf("连接失败: %v", err)
 	}
-	defer asrApp.Close()
 
 	// 3. 启动会话
 	if err := asrApp.Start(); err != nil {

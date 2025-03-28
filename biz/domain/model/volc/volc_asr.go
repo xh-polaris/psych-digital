@@ -1,7 +1,6 @@
 package volc
 
 import (
-	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
@@ -11,6 +10,7 @@ import (
 	"golang.org/x/net/context"
 	"io"
 	"net/http"
+	"sync"
 )
 
 // VcAsrApp 是火山引擎的大模型语音识别
@@ -18,8 +18,8 @@ import (
 // 目前只支持单声道音频, 默认使用pcm格式, 16000采样频率, 全量返回
 type VcAsrApp struct {
 	// ws 连接
-	ws *websocket.Conn
-
+	ws         *websocket.Conn
+	mu         sync.Mutex
 	appKey     string
 	accessKey  string
 	resourceId string
@@ -51,6 +51,8 @@ func NewVcAsrApp(appKey, accessKey, resourceId, url string) *VcAsrApp {
 		connId:     connId,
 		logId:      logId,
 		sessionId:  sessionId,
+		seq:        1,
+		mu:         sync.Mutex{},
 	}
 	app.buildHTTPHeader()
 	return app
@@ -81,44 +83,45 @@ func (app *VcAsrApp) Start() error {
 	var err error
 
 	// 协商配置参数
-	// 用户参数
-	user := map[string]string{
-		"uid": app.connId,
-	}
-	// 音频参数 TODO: 目前格式均固定, 之后允许配置
-	audio := map[string]any{
-		"format":      "pcm", // 格式,  pcm/wav/ogg
-		"sample_rate": 16000, // 采样频率, 只支持16000
-		"bits":        16,    // 采样位数, 默认16 TODO: 确认
-		"channels":    1,     // 单声道, TODO: 确认
-		"codec":       "raw", // 编码方式, raw(pcm)
-	}
-	//  请求参数
-	request := map[string]any{
-		"model_name":  "bigmodel", // 目前只有这个模型
-		"enable_punc": true,       // 启用标点
-	}
-	payload := map[string]any{
-		"user":    user,
-		"audio":   audio,
-		"request": request,
+	req := map[string]any{
+		// 用户参数
+		"user": map[string]any{
+			"uid": "test",
+		},
+		// 音频参数 TODO: 目前格式均固定, 之后允许配置
+		"audio": map[string]any{
+			"format":      "pcm", // 格式,  pcm/wav/ogg
+			"sample_rate": 16000, // 采样频率, 只支持16000
+			"bits":        16,    // 采样位数, 默认16 TODO: 确认
+			"channels":    1,     // 单声道, TODO: 确认
+			"codec":       "raw", // 编码方式, raw(pcm)
+		},
+		"request": map[string]any{
+			"model_name":  "bigmodel", // 目前只有这个模型
+			"enable_punc": true,       // 启用标点
+		},
 	}
 
 	// 序列化为字节
-	payloadBytes, err := json.Marshal(payload)
+	payload, err := json.Marshal(req)
 	if err != nil {
 		return err
 	}
 	// gzip压缩
-	payloadBytes, err = util.GzipCompress(payloadBytes)
+	payload, err = util.GzipCompress(payload)
 	if err != nil {
 		return err
 	}
 	// 组装full client request, full client request = header + sequence + payload
 	header := getHeader(FullClientRequest, PosSequence, JSON, GZIP, byte(0))
-	seqBytes := intToBytes(app.seq)
-	payloadSize := intToBytes(len(payloadBytes))
-	fullClientRequest := append(header, append(seqBytes, append(payloadSize, payloadBytes...)...)...)
+	seqBytes := util.IntToBytes(app.seq)
+	payloadSize := util.IntToBytes(len(payload))
+	fullClientRequest := make([]byte, 0)
+	fullClientRequest = append(fullClientRequest, header...)
+	fullClientRequest = append(fullClientRequest, seqBytes...)
+	fullClientRequest = append(fullClientRequest, payloadSize...)
+	fullClientRequest = append(fullClientRequest, payload...)
+	fmt.Println(fullClientRequest)
 	if err = app.ws.WriteMessage(websocket.BinaryMessage, fullClientRequest); err != nil {
 		return err
 	}
@@ -131,17 +134,20 @@ func (app *VcAsrApp) Send(data []byte) error {
 	app.seq++
 	messageTypeSpecificFlags := PosSequence
 	// header
-	header := getHeader(AudioOnlyRequest, byte(messageTypeSpecificFlags), JSON, GZIP, byte(0))
+	header := getHeader(AudioOnlyRequest, messageTypeSpecificFlags, JSON, GZIP, byte(0))
 	// seq
-	seqBytes := intToBytes(app.seq)
+	seqBytes := util.IntToBytes(app.seq)
 	// payload
-	payloadSize := intToBytes(len(data))
 	payloadBytes, err := util.GzipCompress(data)
+	payloadSize := util.IntToBytes(len(payloadBytes))
 	if err != nil {
 		return err
 	}
 
 	audioOnlyRequest := append(header, append(seqBytes, append(payloadSize, payloadBytes...)...)...)
+
+	app.mu.Lock()
+	defer app.mu.Unlock()
 	if err = app.ws.WriteMessage(websocket.BinaryMessage, audioOnlyRequest); err != nil {
 		return err
 	}
@@ -157,9 +163,9 @@ func (app *VcAsrApp) Receive() ([]byte, error) {
 
 	switch mt {
 	case websocket.BinaryMessage:
-		return app.receiveText(res)
-	case websocket.TextMessage:
 		return app.receiveBytes(res)
+	case websocket.TextMessage:
+		return app.receiveText(res)
 	default:
 		return nil, fmt.Errorf("invalid websocket message")
 	}
@@ -203,13 +209,13 @@ func parse(res []byte) (data []byte, seq int, err error) {
 	//_reserved := res[3]
 
 	// sequence 4bytes
-	_seq, err := bytesToInt(res[4:8])
+	_seq, err := util.BytesToInt(res[4:8])
 	if err != nil {
 		return nil, 0, err
 	}
 
 	// payload size 4 byte, 暂时没有实际作用
-	//_payloadSize, err := bytesToInt(res[8:12])
+	//_payloadSize, err := BytesToInt(res[8:12])
 	//if err != nil {
 	//	return nil, 0, err
 	//}
@@ -218,7 +224,7 @@ func parse(res []byte) (data []byte, seq int, err error) {
 	payload := res[12:]
 
 	switch _messageType {
-	case FullClientRequest:
+	case FullServerResponse:
 		if _messageCompression == GZIP {
 			data, err = util.GzipDecompress(payload)
 			return data, _seq, err
@@ -229,9 +235,8 @@ func parse(res []byte) (data []byte, seq int, err error) {
 		return payload, _seq, nil
 	case ServerErrorResponse:
 		return payload, _seq, fmt.Errorf("code: %d, msg: %s", _seq, string(payload))
-	default:
-		return nil, 0, fmt.Errorf("unknown message type: %d", _messageType)
 	}
+	return nil, 0, nil
 }
 
 // buildHTTPHeader 构造鉴权请求头
@@ -254,41 +259,26 @@ func getHeader(messageType, messageTypeSpecificFlags, serialMethod, compressionT
 	return header
 }
 
-// intToBytes 将整数变成字节数组
-func intToBytes(n int) []byte {
-	b := make([]byte, 4)
-	binary.BigEndian.PutUint32(b, uint32(n))
-	return b
-}
-
-// bytesToInt 将字节数组变成整数
-func bytesToInt(data []byte) (int, error) {
-	if len(data) != 4 || data == nil {
-		return 0, fmt.Errorf("bytesToInt err")
-	}
-	return int(binary.BigEndian.Uint32(data)), nil
-}
-
 // 协议常量
 const (
-	ProtocolVersion   = 0b0001
+	ProtocolVersion   = byte(0b0001)
 	DefaultHeaderSize = 0b0001
 
-	FullClientRequest   = 0b0001
-	AudioOnlyRequest    = 0b0010
-	FullServerResponse  = 0b1001
-	ServerAck           = 0b1011
-	ServerErrorResponse = 0b1111
+	FullClientRequest   = byte(0b0001)
+	AudioOnlyRequest    = byte(0b0010)
+	FullServerResponse  = byte(0b1001)
+	ServerAck           = byte(0b1011)
+	ServerErrorResponse = byte(0b1111)
 
-	NoSequence      = 0b0000 // no check sequence
-	PosSequence     = 0b0001
-	NegSequence     = 0b0010
-	NegWithSequence = 0b0011
-	NegSequence1    = 0b0011
+	NoSequence      = byte(0b0000) // no check sequence
+	PosSequence     = byte(0b0001)
+	NegSequence     = byte(0b0010)
+	NegWithSequence = byte(0b0011)
+	NegSequence1    = byte(0b0011)
 
-	NoSerialization = 0b0000
-	JSON            = 0b0001
+	NoSerialization = byte(0b0000)
+	JSON            = byte(0b0001)
 
-	NoCompression = 0b0000
-	GZIP          = 0b0001
+	NoCompression = byte(0b0000)
+	GZIP          = byte(0b0001)
 )

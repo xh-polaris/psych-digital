@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -22,6 +23,7 @@ import (
 type VcTtsApp struct {
 	// ws 连接
 	ws *websocket.Conn
+	mu sync.Mutex
 
 	appKey     string
 	accessKey  string
@@ -53,6 +55,7 @@ func NewVcTtsApp(appKey, accessKey, speaker, resourceId, url string) *VcTtsApp {
 		connId:     connId,
 		logId:      logId,
 		sessionId:  sessionId,
+		mu:         sync.Mutex{},
 	}
 	app.buildHTTPHeader()
 	return app
@@ -231,6 +234,8 @@ func (app *VcTtsApp) sendTtsMessage(text string) error {
 		return fmt.Errorf("marshal TaskRequest request message: %w", err)
 	}
 
+	app.mu.Lock()
+	defer app.mu.Unlock()
 	if err := app.ws.WriteMessage(websocket.BinaryMessage, frame); err != nil {
 		return fmt.Errorf("send TaskRequest request: %w", err)
 	}

@@ -12,11 +12,13 @@ require (
 	github.com/gorilla/websocket v1.5.3
 	github.com/hertz-contrib/obs-opentelemetry/tracing v0.4.1
 	github.com/hertz-contrib/websocket v0.2.0
+	github.com/satori/go.uuid v1.2.0
 	github.com/xh-polaris/gopkg v0.0.0-20250312141711-7327267f4ea6
 	github.com/xh-polaris/service-idl-gen-go v0.0.0-20250108075223-4036ab37c8b4
 	github.com/zeromicro/go-zero v1.8.1
 	go.opentelemetry.io/contrib/propagators/b3 v1.35.0
 	go.opentelemetry.io/otel v1.35.0
+	golang.org/x/net v0.35.0
 	google.golang.org/grpc v1.71.0
 )
 
@@ -68,7 +70,6 @@ require (
 	go.opentelemetry.io/proto/otlp v1.3.1 // indirect
 	go.uber.org/automaxprocs v1.6.0 // indirect
 	golang.org/x/arch v0.6.0 // indirect
-	golang.org/x/net v0.35.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250106144421-5f5ef82da422 // indirect
