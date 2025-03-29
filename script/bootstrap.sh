@@ -1,5 +1,5 @@
 #!/bin/bash
 CURDIR=$(cd $(dirname $0); pwd)
-BinaryName=essay.show
+BinaryName=psych-digital
 echo "$CURDIR/bin/${BinaryName}"
 exec $CURDIR/bin/${BinaryName}
