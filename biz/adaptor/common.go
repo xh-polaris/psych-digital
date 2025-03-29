@@ -30,6 +30,7 @@ func UpgradeWs(ctx context.Context, c *app.RequestContext, handler wsHandler) er
 		handler(ctx, conn)
 	})
 	if err != nil {
+		log.Error(err.Error())
 		return consts.ErrWsUpgrade
 	}
 	return nil
