@@ -2,6 +2,8 @@ module github.com/xh-polaris/psych-digital
 
 go 1.22.0
 
+toolchain go1.24.1
+
 require (
 	github.com/bytedance/gopkg v0.1.1
 	github.com/cloudwego/hertz v0.9.6
@@ -55,7 +57,7 @@ require (
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.62.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
-	github.com/redis/go-redis/v9 v9.7.1 // indirect
+	github.com/redis/go-redis/v9 v9.7.3 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/tidwall/gjson v1.17.3 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
