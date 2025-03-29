@@ -12,10 +12,31 @@ import (
 
 var config *Config
 
+type Config struct {
+	service.ServiceConf
+	ListenOn string
+	State    string
+	Auth     Auth
+	Mongo    struct {
+		URL string
+		DB  string
+	}
+	Cache    cache.CacheConf
+	Redis    *redis.RedisConf
+	RabbitMQ RabbitMQ
+	BaiLian  BaiLian
+	VolcTts  VolcTts
+	VolcAsr  VolcAsr
+}
+
 type Auth struct {
 	SecretKey    string
 	PublicKey    string
 	AccessExpire int64
+}
+
+type RabbitMQ struct {
+	Url string
 }
 
 type BaiLian struct {
@@ -36,22 +57,6 @@ type VolcAsr struct {
 	AppKey     string
 	AccessKey  string
 	ResourceId string
-}
-
-type Config struct {
-	service.ServiceConf
-	ListenOn string
-	State    string
-	Auth     Auth
-	Mongo    struct {
-		URL string
-		DB  string
-	}
-	Cache   cache.CacheConf
-	Redis   *redis.RedisConf
-	BaiLian BaiLian
-	VolcTts VolcTts
-	VolcAsr VolcAsr
 }
 
 func NewConfig() (*Config, error) {

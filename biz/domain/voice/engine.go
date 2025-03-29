@@ -4,6 +4,7 @@ import (
 	"github.com/hertz-contrib/websocket"
 	"github.com/xh-polaris/gopkg/util/log"
 	"github.com/xh-polaris/psych-digital/biz/application/dto"
+	"github.com/xh-polaris/psych-digital/biz/domain"
 	"github.com/xh-polaris/psych-digital/biz/domain/model"
 	"github.com/xh-polaris/psych-digital/biz/domain/model/volc"
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/config"
@@ -17,7 +18,7 @@ type Engine struct {
 	cancel context.CancelFunc
 
 	// ws 管理ws连接
-	ws *model.WsHelper
+	ws *domain.WsHelper
 
 	// asrApp 语音识别app
 	asrApp model.AsrApp
@@ -30,7 +31,7 @@ func NewEngine(ctx context.Context, conn *websocket.Conn) *Engine {
 	e := &Engine{
 		ctx:    ctx,
 		cancel: cancel,
-		ws:     model.NewWsHelper(conn),
+		ws:     domain.NewWsHelper(conn),
 		asrApp: volc.NewVcAsrApp(c.VolcAsr.AppKey, c.VolcAsr.AccessKey, c.VolcAsr.ResourceId, c.VolcAsr.ResourceId),
 	}
 	return e

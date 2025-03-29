@@ -1,4 +1,4 @@
-package model
+package domain
 
 import (
 	"github.com/hertz-contrib/websocket"

@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"log"
 )
 
 // GzipCompress 按照gzip的方式压缩
@@ -54,4 +55,11 @@ func BytesToInt(data []byte) (int, error) {
 		return 0, fmt.Errorf("BytesToInt err")
 	}
 	return int(binary.BigEndian.Uint32(data)), nil
+}
+
+// FailOnError 出现异常时中止
+func FailOnError(msg string, err error) {
+	if err != nil {
+		log.Panicf("%s: %s", msg, err.Error())
+	}
 }

@@ -13,8 +13,14 @@ import (
 	logx "github.com/xh-polaris/gopkg/util/log"
 	"github.com/xh-polaris/psych-digital/biz/adaptor"
 	"github.com/xh-polaris/psych-digital/biz/adaptor/router"
+	"github.com/xh-polaris/psych-digital/biz/infrastructure/mq"
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/util/log"
 	"github.com/xh-polaris/psych-digital/provider"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/contrib/propagators/b3"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
+	"net/http"
 )
 
 func Init() {
@@ -23,8 +29,8 @@ func Init() {
 	// 初始化自定义日志
 	hlog.SetLogger(logx.NewHlogLogger())
 	// 设置openTelemetry的传播器，用于分布式追踪中传递上下文信息
-	//otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(b3.New(), propagation.Baggage{}, propagation.TraceContext{}))
-	//http.DefaultTransport = otelhttp.NewTransport(http.DefaultTransport)
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(b3.New(), propagation.Baggage{}, propagation.TraceContext{}))
+	http.DefaultTransport = otelhttp.NewTransport(http.DefaultTransport)
 }
 
 func main() {
@@ -53,5 +59,9 @@ func main() {
 	// 注册路由
 	router.Register(h)
 	log.Info("server start")
+
+	// 启动消费者
+	go mq.Consume()
+
 	h.Spin()
 }

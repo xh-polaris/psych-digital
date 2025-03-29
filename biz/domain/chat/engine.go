@@ -6,11 +6,13 @@ import (
 	"github.com/hertz-contrib/websocket"
 	"github.com/xh-polaris/gopkg/util/log"
 	"github.com/xh-polaris/psych-digital/biz/application/dto"
+	"github.com/xh-polaris/psych-digital/biz/domain"
 	"github.com/xh-polaris/psych-digital/biz/domain/model"
 	"github.com/xh-polaris/psych-digital/biz/domain/model/bailian"
 	"github.com/xh-polaris/psych-digital/biz/domain/model/volc"
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/config"
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/consts"
+	"github.com/xh-polaris/psych-digital/biz/infrastructure/mq"
 	"io"
 	"time"
 )
@@ -25,11 +27,11 @@ type Engine struct {
 	cancel context.CancelFunc
 
 	// ws 提供WebSocket的读写功能
-	ws *model.WsHelper
+	ws *domain.WsHelper
 
 	// rs 提供redis的读写功能 TODO: 此处用于测试，暂时不用redis
-	// rs *RedisHelper
-	rs *model.MemoryRedisHelper
+	rs *domain.RedisHelper
+	//rs *domain.MemoryRedisHelper
 
 	// chatApp 是调用的对话大模型
 	chatApp model.ChatApp
@@ -55,6 +57,12 @@ type Engine struct {
 
 	// stop 用于打断AI输出
 	stop chan bool
+
+	// startTime 开始对话时间
+	startTime time.Time
+
+	// provider 消息生产者
+	provider *mq.HistoryProducer
 }
 
 // NewEngine 初始化一个ChatEngine
@@ -65,9 +73,9 @@ func NewEngine(ctx context.Context, conn *websocket.Conn) *Engine {
 	e := &Engine{
 		ctx:    ctx,
 		cancel: cancel,
-		ws:     model.NewWsHelper(conn),
-		//rs:      NewRedisHelper(c),
-		rs:          model.NewMemoryRedisHelper(),
+		ws:     domain.NewWsHelper(conn),
+		rs:     domain.GetRedisHelper(),
+		//rs:          domain.NewMemoryRedisHelper(),
 		chatApp:     bailian.NewBLChatApp(c.BaiLian.AppId, c.BaiLian.ApiKey),
 		ttsApp:      volc.NewVcTtsApp(c.VolcTts.AppKey, c.VolcTts.AccessKey, c.VolcTts.Speaker, c.VolcTts.ResourceId, c.VolcTts.Url),
 		aiHistory:   make(chan string, 10),
@@ -75,6 +83,8 @@ func NewEngine(ctx context.Context, conn *websocket.Conn) *Engine {
 		outw:        make(chan string, 50),
 		outv:        make(chan []byte, 50),
 		stop:        make(chan bool),
+		startTime:   time.Now(),
+		provider:    mq.GetHistoryProducer(),
 	}
 	return e
 }
@@ -102,9 +112,6 @@ func (e *Engine) Start() error {
 	// 由于sessionId由第三方给出, 所以这里需要手动管理聊天记录的顺序
 	// 等待获取sessionId, 初始化redis
 	his := <-e.aiHistory
-	if err = e.rs.Init(e.sessionId); err != nil {
-		return err
-	}
 	if err = e.rs.AddSystem(e.sessionId, msg); err != nil {
 		return err
 	}
@@ -285,6 +292,7 @@ func (e *Engine) history(ai, user chan string) {
 func (e *Engine) Close() {
 	defer func() { _ = e.close() }()
 
+	// 发送结束标识
 	err := e.ws.WriteJSON(&dto.ChatEndResp{
 		Code: 0,
 		Msg:  "对话结束",
@@ -292,6 +300,10 @@ func (e *Engine) Close() {
 	if err != nil {
 		log.Error(err.Error())
 		return
+	}
+	// 发送对话历史记录消息
+	if err = e.provider.Produce(e.ctx, e.sessionId, e.startTime, time.Now()); err != nil {
+		log.Error("消息发送失败, sessionId: ", e.sessionId)
 	}
 	// 关闭所有协程
 	e.cancel()
