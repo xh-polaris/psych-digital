@@ -21,7 +21,11 @@ import (
 type wsHandler func(ctx context.Context, conn *websocket.Conn)
 
 // upgrader 默认配置的协议升级器, 用于将HTTP请求升级为WebSocket请求
-var upgrader = websocket.HertzUpgrader{}
+var upgrader = websocket.HertzUpgrader{
+	CheckOrigin: func(ctx *app.RequestContext) bool {
+		return true
+	},
+}
 
 // UpgradeWs 将Http协议升级为WebSocket协议
 func UpgradeWs(ctx context.Context, c *app.RequestContext, handler wsHandler) error {
