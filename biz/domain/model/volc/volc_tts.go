@@ -214,7 +214,7 @@ func (app *VcTtsApp) sendTtsMessage(text string) error {
 			Text:    text,
 			Speaker: app.speaker,
 			AudioParams: &AudioParams{
-				Format:     "mp3",
+				Format:     "pcm",
 				SampleRate: 24000,
 			},
 		},
