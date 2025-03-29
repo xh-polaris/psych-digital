@@ -73,6 +73,7 @@ func (r *RedisHelper) Load(sessionId string) ([]*dto.ChatHistory, error) {
 		if err = json.Unmarshal([]byte(v), &his); err != nil {
 			return nil, err
 		}
+		history = append(history, &his)
 	}
 	return history, nil
 }

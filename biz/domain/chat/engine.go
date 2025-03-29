@@ -170,7 +170,7 @@ func (e *Engine) streamCall(msg string) {
 	var data *dto.ChatData
 
 	// 流式响应的scanner
-	scanner, err := e.chatApp.StreamCall(msg)
+	scanner, err := e.chatApp.StreamCall(msg, e.sessionId)
 	defer func() {
 		_ = scanner.Close()
 		switch {

@@ -58,11 +58,12 @@ func (app *BLChatApp) Call(msg string) error {
 }
 
 // StreamCall 流式调用
-func (app *BLChatApp) StreamCall(msg string) (model.ChatAppScanner, error) {
+func (app *BLChatApp) StreamCall(msg string, sessionId string) (model.ChatAppScanner, error) {
 	client := util.GetHttpClient()
 
 	// 设置调用提示词
 	app.body["input"].(map[string]string)["prompt"] = msg
+	app.body["input"].(map[string]string)["session_id"] = sessionId
 
 	// 获取流式响应reader
 	reader, err := client.StreamReq(consts.Post, app.url, app.header, app.body)

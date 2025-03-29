@@ -43,7 +43,6 @@ func (c *HistoryConsumer) Start() {
 	// 启动消息处理
 	gopool.CtxGo(ctx, func() {
 		c.consume(ctx)
-		c.finish <- struct{}{}
 	})
 	// 处理系统信号
 	gopool.CtxGo(ctx, func() {
@@ -112,7 +111,7 @@ func (c *HistoryConsumer) process(ctx context.Context, msg amqp.Delivery) error 
 		return err
 	}
 
-	dialogs := make([]*history.Dialog, len(histories))
+	dialogs := make([]*history.Dialog, 0, len(histories))
 	for _, his := range histories {
 		dia := &history.Dialog{
 			Role:    his.Role,
@@ -131,6 +130,11 @@ func (c *HistoryConsumer) process(ctx context.Context, msg amqp.Delivery) error 
 
 	// 存储对话记录
 	if err = c.store(ctx, his); err != nil {
+		return err
+	}
+
+	// 从redis中删除
+	if err = rs.Remove(session); err != nil {
 		return err
 	}
 	return nil

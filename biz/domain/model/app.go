@@ -10,7 +10,7 @@ type ChatApp interface {
 	Call(msg string) error
 
 	// StreamCall 流式调用, 默认应该采用增量输出, 即后续的输出不包括之前的输出
-	StreamCall(msg string) (ChatAppScanner, error)
+	StreamCall(msg string, sessionId string) (ChatAppScanner, error)
 
 	// Close 关闭资源
 	Close() error

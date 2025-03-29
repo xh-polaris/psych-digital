@@ -9,6 +9,7 @@ import (
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/consts"
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/util"
 	"net/http"
+	"strings"
 	"sync"
 )
 
@@ -73,7 +74,7 @@ func (app *BLReportApp) Call(prompt string) (*dto.ChatReport, error) {
 	if !ok {
 		return nil, nil
 	}
-
+	strings.Replace(text, "`", "", -1)
 	err = json.Unmarshal([]byte(text), &report)
 	return &report, err
 }
