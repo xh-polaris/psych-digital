@@ -2,10 +2,12 @@ module github.com/xh-polaris/psych-digital
 
 go 1.22.0
 
+toolchain go1.24.1
+
 require (
 	github.com/bytedance/gopkg v0.1.1
 	github.com/cloudwego/hertz v0.9.6
-	github.com/golang-jwt/jwt/v4 v4.5.1
+	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/golang/glog v1.2.4
 	github.com/google/uuid v1.6.0
 	github.com/google/wire v0.6.0
