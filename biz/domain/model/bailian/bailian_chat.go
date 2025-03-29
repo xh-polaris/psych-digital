@@ -15,6 +15,8 @@ import (
 	"time"
 )
 
+var _ model.ChatApp = (*BLChatApp)(nil)
+
 // BLChatApp 是阿里云对话大模型应用
 // 使用云端上下文管理，本地不管理聊天记录
 type BLChatApp struct {
@@ -51,7 +53,7 @@ func NewBLChatApp(appId string, apiKey string) model.ChatApp {
 }
 
 // Call 非流式调用，暂时没用上
-func (app *BLChatApp) Call(msg string) {
+func (app *BLChatApp) Call(msg string) error {
 	panic("implement me")
 }
 

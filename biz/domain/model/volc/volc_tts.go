@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/xh-polaris/gopkg/util/log"
+	"github.com/xh-polaris/psych-digital/biz/domain/model"
 	"io"
 	"net/http"
 	"strconv"
@@ -16,6 +17,8 @@ import (
 	"sync"
 	"time"
 )
+
+var _ model.TtsApp = (*VcTtsApp)(nil)
 
 // VcTtsApp 是火山引擎的大模型语音合成
 // 默认双向流式, 暂定一次对话共用一个连接, 如果太长了之后就一轮话一个连接

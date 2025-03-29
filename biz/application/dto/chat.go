@@ -36,9 +36,17 @@ type (
 		Role    string `json:"role"`
 		Content string `json:"content"`
 	}
-)
 
-var StopData = ChatData{
-	Id:     0,
-	Finish: "break",
-}
+	// ChatReport 对话分析报告
+	ChatReport struct {
+		Name   string `json:"name"`
+		Class  string `json:"class"`
+		Report struct {
+			Keywords   []string `json:"keywords"`
+			Type       []string `json:"type"`
+			Content    string   `json:"content"`
+			Grade      string   `json:"grade"`
+			Suggestion []string `json:"suggestion"`
+		} `json:"report"`
+	}
+)

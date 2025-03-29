@@ -7,7 +7,7 @@ import (
 // ChatApp 是第三方对话大模型应用的抽象
 type ChatApp interface {
 	// Call 整体调用
-	Call(msg string)
+	Call(msg string) error
 
 	// StreamCall 流式调用, 默认应该采用增量输出, 即后续的输出不包括之前的输出
 	StreamCall(msg string) (ChatAppScanner, error)
@@ -19,6 +19,15 @@ type ChatApp interface {
 // ChatAppScanner 是第三方对话调用的响应
 type ChatAppScanner interface {
 	Next() (*dto.ChatData, error)
+	Close() error
+}
+
+// ReportApp 是第三方报告分析大模型应用的抽象
+type ReportApp interface {
+	// Call 获取报告结果
+	Call(msg string) (*dto.ChatReport, error)
+
+	// Close 关闭资源
 	Close() error
 }
 

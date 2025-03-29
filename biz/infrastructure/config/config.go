@@ -21,12 +21,13 @@ type Config struct {
 		URL string
 		DB  string
 	}
-	Cache    cache.CacheConf
-	Redis    *redis.RedisConf
-	RabbitMQ RabbitMQ
-	BaiLian  BaiLian
-	VolcTts  VolcTts
-	VolcAsr  VolcAsr
+	Cache         cache.CacheConf
+	Redis         *redis.RedisConf
+	RabbitMQ      RabbitMQ
+	BaiLianChat   BaiLianChat
+	BaiLianReport BaiLianReport
+	VolcTts       VolcTts
+	VolcAsr       VolcAsr
 }
 
 type Auth struct {
@@ -39,7 +40,12 @@ type RabbitMQ struct {
 	Url string
 }
 
-type BaiLian struct {
+type BaiLianChat struct {
+	AppId  string
+	ApiKey string
+}
+
+type BaiLianReport struct {
 	AppId  string
 	ApiKey string
 }

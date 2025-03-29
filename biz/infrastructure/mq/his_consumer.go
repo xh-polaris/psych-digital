@@ -6,10 +6,12 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/xh-polaris/gopkg/util/log"
 	"github.com/xh-polaris/psych-digital/biz/domain"
+	"github.com/xh-polaris/psych-digital/biz/domain/model/bailian"
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/mapper/history"
 	"golang.org/x/net/context"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -125,7 +127,7 @@ func (c *HistoryConsumer) process(ctx context.Context, msg amqp.Delivery) error 
 	}
 
 	// 解析对话消息
-	c.parse(his)
+	parse(his)
 
 	// 存储对话记录
 	if err = c.store(ctx, his); err != nil {
@@ -135,8 +137,35 @@ func (c *HistoryConsumer) process(ctx context.Context, msg amqp.Delivery) error 
 }
 
 // parse 解析对话信息
-func (c *HistoryConsumer) parse(his *history.History) {
+func parse(his *history.History) {
+	reportApp := bailian.GetBLReportApp()
+	report, err := reportApp.Call(buildMsg(his))
+	if err != nil {
+		log.Error("call build error:", err)
+		return
+	}
+	his.Name = report.Name
+	his.Class = report.Class
+	his.Report = &history.Report{
+		Keywords:   report.Report.Keywords,
+		Type:       report.Report.Type,
+		Content:    report.Report.Content,
+		Grade:      report.Report.Grade,
+		Suggestion: report.Report.Suggestion,
+	}
 	return
+}
+
+// buildMsg 拼接消息
+func buildMsg(his *history.History) string {
+	var sb strings.Builder
+	for _, h := range his.Dialogs {
+		sb.WriteString(h.Role)
+		sb.WriteString(":")
+		sb.WriteString(h.Content)
+		sb.WriteString("\n")
+	}
+	return sb.String()
 }
 
 // store 存储对话记录

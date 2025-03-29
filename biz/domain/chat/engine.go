@@ -76,7 +76,7 @@ func NewEngine(ctx context.Context, conn *websocket.Conn) *Engine {
 		ws:     domain.NewWsHelper(conn),
 		rs:     domain.GetRedisHelper(),
 		//rs:          domain.NewMemoryRedisHelper(),
-		chatApp:     bailian.NewBLChatApp(c.BaiLian.AppId, c.BaiLian.ApiKey),
+		chatApp:     bailian.NewBLChatApp(c.BaiLianChat.AppId, c.BaiLianChat.ApiKey),
 		ttsApp:      volc.NewVcTtsApp(c.VolcTts.AppKey, c.VolcTts.AccessKey, c.VolcTts.Speaker, c.VolcTts.ResourceId, c.VolcTts.Url),
 		aiHistory:   make(chan string, 10),
 		userHistory: make(chan string, 10),

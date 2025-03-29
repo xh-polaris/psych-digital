@@ -7,12 +7,15 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/xh-polaris/gopkg/util/log"
+	"github.com/xh-polaris/psych-digital/biz/domain/model"
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/util"
 	"golang.org/x/net/context"
 	"io"
 	"net/http"
 	"sync"
 )
+
+var _ model.AsrApp = (*VcAsrApp)(nil)
 
 // VcAsrApp 是火山引擎的大模型语音识别
 // 默认双向流式, 暂定一次对话共用一个连接, 如果太长了就一段话一个连接
