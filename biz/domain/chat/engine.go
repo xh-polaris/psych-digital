@@ -29,7 +29,7 @@ type Engine struct {
 	// ws 提供WebSocket的读写功能
 	ws *domain.WsHelper
 
-	// rs 提供redis的读写功能 TODO: 此处用于测试，暂时不用redis
+	// rs 提供redis的读写功能
 	rs *domain.RedisHelper
 	//rs *domain.MemoryRedisHelper
 
@@ -290,7 +290,11 @@ func (e *Engine) history(ai, user chan string) {
 
 // Close 结束本轮对话
 func (e *Engine) Close() {
-	defer func() { _ = e.close() }()
+	defer func() {
+		// 关闭所有协程
+		e.cancel()
+		_ = e.close()
+	}()
 
 	// 发送结束标识
 	err := e.ws.WriteJSON(&dto.ChatEndResp{
@@ -305,8 +309,7 @@ func (e *Engine) Close() {
 	if err = e.provider.Produce(e.ctx, e.sessionId, e.startTime, time.Now()); err != nil {
 		log.Error("消息发送失败, sessionId: ", e.sessionId)
 	}
-	// 关闭所有协程
-	e.cancel()
+
 }
 
 // close 释放相关资源

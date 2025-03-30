@@ -42,7 +42,6 @@ func main() {
 	// 创造hertz服务器实例
 	h := server.New(
 		server.WithHostPorts(c.ListenOn),
-		// 集成prometheus监控
 		//server.WithTracer(prometheus.NewServerTracer(":9091", "/server/metrics")),
 		tracer,
 	)

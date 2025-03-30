@@ -19,7 +19,7 @@ var _ model.AsrApp = (*VcAsrApp)(nil)
 
 // VcAsrApp 是火山引擎的大模型语音识别
 // 默认双向流式, 暂定一次对话共用一个连接, 如果太长了就一段话一个连接
-// 目前只支持单声道音频, 默认使用pcm格式, 16000采样频率, 全量返回
+// 目前只支持单声道音频, 默认使用pcm格式, 16000采样频率, 增量返回
 type VcAsrApp struct {
 	// ws 连接
 	ws         *websocket.Conn
@@ -103,6 +103,7 @@ func (app *VcAsrApp) Start() error {
 		"request": map[string]any{
 			"model_name":  "bigmodel", // 目前只有这个模型
 			"enable_punc": true,       // 启用标点
+			"result_type": "single",   // 增量返回
 		},
 	}
 

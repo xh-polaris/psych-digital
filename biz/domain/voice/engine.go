@@ -22,6 +22,9 @@ type Engine struct {
 
 	// asrApp 语音识别app
 	asrApp model.AsrApp
+
+	// finish 结束
+	finish chan struct{}
 }
 
 // NewEngine 初始化
@@ -33,6 +36,7 @@ func NewEngine(ctx context.Context, conn *websocket.Conn) *Engine {
 		cancel: cancel,
 		ws:     domain.NewWsHelper(conn),
 		asrApp: volc.NewVcAsrApp(c.VolcAsr.AppKey, c.VolcAsr.AccessKey, c.VolcAsr.ResourceId, c.VolcAsr.ResourceId),
+		finish: make(chan struct{}),
 	}
 	return e
 }
@@ -52,6 +56,7 @@ func (e *Engine) Start() error {
 func (e *Engine) Listen() {
 	go e.listen()
 	go e.recognise()
+	<-e.finish
 }
 
 // recognise 识别音频并写入输入
@@ -71,6 +76,7 @@ func (e *Engine) recognise() {
 				Timestamp: time.Now().Unix(),
 			}
 			if err = e.ws.WriteJSON(resp); err != nil {
+				e.finish <- struct{}{}
 				return
 			}
 		}
@@ -91,6 +97,7 @@ func (e *Engine) listen() {
 				continue
 			}
 			if err = e.asrApp.Send(data); err != nil {
+				e.finish <- struct{}{}
 				return
 			}
 		}
