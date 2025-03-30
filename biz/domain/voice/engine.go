@@ -35,7 +35,7 @@ func NewEngine(ctx context.Context, conn *websocket.Conn) *Engine {
 		ctx:    ctx,
 		cancel: cancel,
 		ws:     domain.NewWsHelper(conn),
-		asrApp: volc.NewVcAsrApp(c.VolcAsr.AppKey, c.VolcAsr.AccessKey, c.VolcAsr.ResourceId, c.VolcAsr.ResourceId),
+		asrApp: volc.NewVcAsrApp(c.VolcAsr.AppKey, c.VolcAsr.AccessKey, c.VolcAsr.ResourceId, c.VolcAsr.Url),
 		finish: make(chan struct{}),
 	}
 	return e
