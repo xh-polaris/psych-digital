@@ -2,6 +2,8 @@ module github.com/xh-polaris/psych-digital
 
 go 1.22.0
 
+toolchain go1.24.1
+
 require (
 	github.com/bytedance/gopkg v0.1.1
 	github.com/cloudwego/hertz v0.9.6
@@ -12,7 +14,6 @@ require (
 	github.com/gorilla/websocket v1.5.3
 	github.com/hertz-contrib/obs-opentelemetry/tracing v0.4.1
 	github.com/hertz-contrib/websocket v0.2.0
-	github.com/kitex-contrib/monitor-prometheus v0.2.0
 	github.com/rabbitmq/amqp091-go v1.9.0
 	github.com/xh-polaris/gopkg v0.0.0-20250312141711-7327267f4ea6
 	github.com/xh-polaris/service-idl-gen-go v0.0.0-20250108075223-4036ab37c8b4
@@ -56,7 +57,7 @@ require (
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.62.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
-	github.com/redis/go-redis/v9 v9.7.1 // indirect
+	github.com/redis/go-redis/v9 v9.7.3 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/tidwall/gjson v1.17.3 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
