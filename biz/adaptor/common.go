@@ -68,7 +68,7 @@ func (m *headerProvider) Keys() []string {
 }
 
 func PostProcess(ctx context.Context, c *app.RequestContext, req, resp any, err error) {
-	log.CtxInfo(ctx, "[%s] req=%s, resp=%s, err=%v", c.Path(), util.JSONF(req), util.JSONF(resp), err)
+	log.CtxInfo(ctx, "[%s] request=%s, resp=%s, err=%v", c.Path(), util.JSONF(req), util.JSONF(resp), err)
 	b3.New().Inject(ctx, &headerProvider{headers: &c.Response.Header})
 
 	switch {

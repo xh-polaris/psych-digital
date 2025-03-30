@@ -1,7 +1,10 @@
 package consts
 
 // 数据库相关
-const ()
+const (
+	CreateTime = "create_time"
+	StartTime  = "start_time"
+)
 
 // Post http
 const (

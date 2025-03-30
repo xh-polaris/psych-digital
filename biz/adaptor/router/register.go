@@ -11,6 +11,7 @@ func Register(r *server.Hertz) {
 	{
 		_chat := root.Group("/chat")
 		_chat.GET("/", append(_longchatMw(), chat.LongChat)...)
+		_chat.GET("/history/list", chat.ListHistory)
 	}
 	{
 		_voice := root.Group("/voice")

@@ -10,6 +10,9 @@ import (
 func AsrHandler(ctx context.Context, conn *websocket.Conn) {
 	engine := voice.NewEngine(ctx, conn)
 	defer func() { _ = engine.Close() }()
+	if err := engine.Start(); err != nil {
+		return
+	}
 
 	engine.Listen()
 }

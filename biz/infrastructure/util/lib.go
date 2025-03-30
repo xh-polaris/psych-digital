@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"encoding/binary"
 	"fmt"
+	"github.com/xh-polaris/psych-digital/biz/adaptor/cmd"
 	"io"
 	"log"
 )
@@ -62,4 +63,12 @@ func FailOnError(msg string, err error) {
 	if err != nil {
 		log.Panicf("%s: %s", msg, err.Error())
 	}
+}
+
+// ParsePaging 解析分页参数
+func ParsePaging(p *cmd.Paging) (skip, limit int64) {
+	// 设置分页参数
+	skip = int64((p.Page - 1) * p.Limit)
+	limit = int64(p.Limit)
+	return skip, limit
 }

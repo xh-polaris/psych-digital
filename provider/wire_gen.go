@@ -7,7 +7,9 @@
 package provider
 
 import (
+	"github.com/xh-polaris/psych-digital/biz/application/service"
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/config"
+	"github.com/xh-polaris/psych-digital/biz/infrastructure/mapper/history"
 )
 
 // Injectors from wire.go:
@@ -17,8 +19,13 @@ func NewProvider() (*Provider, error) {
 	if err != nil {
 		return nil, err
 	}
+	mongoMapper := history.NewMongoMapper(configConfig)
+	historyService := service.HistoryService{
+		HistoryMapper: mongoMapper,
+	}
 	providerProvider := &Provider{
-		Config: configConfig,
+		Config:         configConfig,
+		HistoryService: historyService,
 	}
 	return providerProvider, nil
 }
