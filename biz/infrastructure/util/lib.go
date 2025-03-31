@@ -78,14 +78,13 @@ func ParsePaging(p *cmd.Paging) (skip, limit int64) {
 
 // AlertEMail 发送邮件shallwii@126.com
 func AlertEMail() (err error) {
-	//c := config.GetConfig().SMTP
-	c := &config.SMTP{
-		Username: "bot@xhpolaris.com",
-		Password: "XHpolaris123",
-		Host:     "smtp.feishu.cn",
-		Port:     587,
-	}
+	c := config.GetConfig().SMTP
 	auth := smtp.PlainAuth("", c.Username, c.Password, c.Host)
-	err = smtp.SendMail(c.Host+":"+strconv.Itoa(c.Port), auth, c.Username, []string{"1449610641@qq.com"}, []byte("检测到心理空间出现一位高风险学生，请立即前往处理"))
+	err = smtp.SendMail(c.Host+":"+strconv.Itoa(c.Port), auth, c.Username, []string{c.Alert}, []byte(fmt.Sprintf(
+		"To: %s\r\n"+
+			"From: xh-polaris\r\n"+
+			"Content-Type: text/plain"+"; charset=UTF-8\r\n"+
+			"Subject: 预警信息\r\n\r\n"+
+			"检测到心理空间出现一位高风险学生，请立即前往处理\r\n", c.Alert)))
 	return err
 }

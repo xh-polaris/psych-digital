@@ -17,6 +17,7 @@ type SMTP struct {
 	Password string
 	Host     string
 	Port     int
+	Alert    string
 }
 type Config struct {
 	service.ServiceConf
