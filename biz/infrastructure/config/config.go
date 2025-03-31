@@ -12,6 +12,12 @@ import (
 
 var config *Config
 
+type SMTP struct {
+	Username string
+	Password string
+	Host     string
+	Port     int
+}
 type Config struct {
 	service.ServiceConf
 	ListenOn string
@@ -24,6 +30,7 @@ type Config struct {
 	Cache         cache.CacheConf
 	Redis         *redis.RedisConf
 	RabbitMQ      RabbitMQ
+	SMTP          SMTP
 	BaiLianChat   BaiLianChat
 	BaiLianReport BaiLianReport
 	VolcTts       VolcTts

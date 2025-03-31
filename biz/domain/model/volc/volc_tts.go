@@ -93,6 +93,7 @@ func (app *VcTtsApp) Start() (err error) {
 		AudioParams: &AudioParams{
 			Format:     "pcm",
 			SampleRate: 24000,
+			SpeechRate: 20,
 		},
 	}
 	if err = app.startTTSSession(namespace, params); err != nil {

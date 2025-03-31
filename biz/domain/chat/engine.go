@@ -13,7 +13,9 @@ import (
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/config"
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/consts"
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/mq"
+	"github.com/xh-polaris/psych-digital/biz/infrastructure/util"
 	"io"
+	"strings"
 	"time"
 )
 
@@ -197,7 +199,8 @@ func (e *Engine) streamCall(msg string) {
 			if e.sessionId == "" {
 				e.sessionId = data.SessionId
 			}
-
+			// 风险分析
+			analyse(&data.Content)
 			// 写入文本, 用于音频合成
 			e.outw <- data.Content
 			// 写入响应 TODO: test待删除
@@ -332,4 +335,14 @@ func (e *Engine) close() (err error) {
 		log.Error("close tts err:", err)
 	}
 	return
+}
+
+// analyse 风险分析
+func analyse(text *string) {
+	if strings.Contains(*text, "&") {
+		if err := util.AlertEMail(); err != nil {
+			log.Error("邮件发送失败", err)
+		}
+		*text = strings.Replace(*text, "&", " ", -1)
+	}
 }
