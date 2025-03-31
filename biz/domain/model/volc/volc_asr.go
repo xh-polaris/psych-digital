@@ -135,6 +135,9 @@ func (app *VcAsrApp) Start() error {
 
 // Send 发送音频流
 func (app *VcAsrApp) Send(data []byte) error {
+	if app.ws == nil {
+		log.Error("ws is nil")
+	}
 	// 此处本来应该在最后一个包时, 将seq置为负数, 然后采用结束帧类型, 但是考虑到采用Close方法结束, 所以这里就不用这种方式了, 而是在Close中粗暴退出
 	app.seq++
 	messageTypeSpecificFlags := PosSequence
@@ -161,6 +164,9 @@ func (app *VcAsrApp) Send(data []byte) error {
 
 // Receive 接受响应
 func (app *VcAsrApp) Receive() (string, error) {
+	if app.ws == nil {
+		log.Error("ws is nil")
+	}
 	mt, res, err := app.ws.ReadMessage()
 	if err != nil {
 		return "", err

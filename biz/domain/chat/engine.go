@@ -167,9 +167,6 @@ func (e *Engine) Chat() {
 			continue
 
 		}
-		if req.Cmd == consts.EndCmd {
-			return
-		}
 		// 写入用户消息
 		e.userHistory <- req.Msg
 		// 调用ai, 流式响应

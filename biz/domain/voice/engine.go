@@ -69,6 +69,7 @@ func (e *Engine) recognise() {
 			// 获取响应并写入ws
 			text, err := e.asrApp.Receive()
 			if err != nil {
+				e.finish <- struct{}{}
 				return
 			}
 			resp := &dto.AsrResp{
