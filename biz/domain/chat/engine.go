@@ -101,7 +101,7 @@ func (e *Engine) Start() error {
 		return consts.ErrInvalidUser
 	}
 
-	msg := "你好呀, 请问你是谁"
+	msg := "你好呀"
 
 	// 音频生成
 	if err = e.tts(); err != nil {
