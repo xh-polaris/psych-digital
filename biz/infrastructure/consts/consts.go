@@ -14,4 +14,5 @@ const (
 // 默认值
 const (
 	EndCmd = -1
+	Ping   = 1
 )

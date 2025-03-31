@@ -156,6 +156,17 @@ func (e *Engine) Chat() {
 			return
 		}
 		// 判断是否结束
+		switch req.Cmd {
+		case consts.EndCmd:
+			return
+		case consts.Ping:
+			err := e.ws.WriteBytes([]byte{})
+			if err != nil {
+				return
+			}
+			continue
+
+		}
 		if req.Cmd == consts.EndCmd {
 			return
 		}

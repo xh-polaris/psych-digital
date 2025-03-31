@@ -93,7 +93,7 @@ func (e *Engine) listen() {
 			data, err := e.ws.ReadBytes()
 			if err != nil {
 				log.Error("listen audio err: ", err)
-			} else if data == nil {
+			} else if data == nil || len(data) == 0 {
 				continue
 			}
 			if err = e.asrApp.Send(data); err != nil {
