@@ -6,8 +6,11 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/xh-polaris/psych-digital/biz/adaptor/cmd"
+	"github.com/xh-polaris/psych-digital/biz/infrastructure/config"
 	"io"
 	"log"
+	"net/smtp"
+	"strconv"
 )
 
 // GzipCompress 按照gzip的方式压缩
@@ -76,14 +79,13 @@ func ParsePaging(p *cmd.Paging) (skip, limit int64) {
 // AlertEMail 发送邮件shallwii@126.com
 func AlertEMail() (err error) {
 	//c := config.GetConfig().SMTP
-	//c := &config.SMTP{
-	//	Username: "bot@xhpolaris.com",
-	//	Password: "XHpolaris123",
-	//	Host:     "smtp.feishu.cn",
-	//	Port:     587,
-	//}
-	//auth := smtp.PlainAuth("", c.Username, c.Password, c.Host)
-	//err = smtp.SendMail(c.Host+":"+strconv.Itoa(c.Port), auth, c.Username, []string{"1449610641@qq.com"}, []byte("检测到心理空间出现一位高风险学生，请立即前往处理"))
-	//return err
-	return nil
+	c := &config.SMTP{
+		Username: "bot@xhpolaris.com",
+		Password: "XHpolaris123",
+		Host:     "smtp.feishu.cn",
+		Port:     587,
+	}
+	auth := smtp.PlainAuth("", c.Username, c.Password, c.Host)
+	err = smtp.SendMail(c.Host+":"+strconv.Itoa(c.Port), auth, c.Username, []string{"1449610641@qq.com"}, []byte("检测到心理空间出现一位高风险学生，请立即前往处理"))
+	return err
 }
