@@ -3,6 +3,7 @@ package bailian
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/xh-polaris/gopkg/util/log"
 	"github.com/xh-polaris/psych-digital/biz/application/dto"
 	"github.com/xh-polaris/psych-digital/biz/domain/model"
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/config"
@@ -75,6 +76,7 @@ func (app *BLReportApp) Call(prompt string) (*dto.ChatReport, error) {
 		return nil, nil
 	}
 	text = strings.Replace(text, "`", "", -1)
+	log.Info("report result:", text)
 	err = json.Unmarshal([]byte(text), &report)
 	return &report, err
 }
