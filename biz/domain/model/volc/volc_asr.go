@@ -126,7 +126,6 @@ func (app *VcAsrApp) Start() error {
 	fullClientRequest = append(fullClientRequest, seqBytes...)
 	fullClientRequest = append(fullClientRequest, payloadSize...)
 	fullClientRequest = append(fullClientRequest, payload...)
-	fmt.Println(fullClientRequest)
 	if err = app.ws.WriteMessage(websocket.BinaryMessage, fullClientRequest); err != nil {
 		return err
 	}

@@ -10,7 +10,7 @@ import (
 )
 
 // ListHistory .
-// @router /chat/history/list [POST]
+// @router /chat/history/list [GET]
 func ListHistory(ctx context.Context, c *app.RequestContext) {
 	var err error
 	var req cmd.ListHistoryReq
