@@ -302,6 +302,9 @@ func (app *VcTtsApp) receiveMessage() (*Message, error) {
 
 // Close 关闭连接释放资源
 func (app *VcTtsApp) Close() (err error) {
+	if app.ws == nil {
+		return nil
+	}
 	if err = app.finishSession(); err != nil {
 		glog.Errorf("Close session finished with error: %v", err)
 	}

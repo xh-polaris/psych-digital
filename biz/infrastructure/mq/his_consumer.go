@@ -66,7 +66,7 @@ func (c *HistoryConsumer) consume(ctx context.Context) {
 		log.Error("set qos error:", err)
 		return
 	}
-	msgs, err := ch.Consume("chat_history", "history_consumer", false, false, false, false, nil)
+	msgs, err := ch.Consume("chat_history_huasi", "history_consumer_huasi", false, false, false, false, nil)
 	if err != nil {
 		log.Error("get consume error:", err)
 		return
@@ -125,12 +125,14 @@ func (c *HistoryConsumer) process(ctx context.Context, msg amqp.Delivery) error 
 		EndTime:   time.Unix(end, 0),
 	}
 
-	// 解析对话消息
-	parse(his)
-
-	// 存储对话记录
-	if err = c.store(ctx, his); err != nil {
-		return err
+	if len(dialogs) > 0 {
+		if err = parse(his); err != nil {
+			return err
+		}
+		// 存储对话记录
+		if err = c.store(ctx, his); err != nil {
+			return err
+		}
 	}
 
 	// 从redis中删除
@@ -141,12 +143,12 @@ func (c *HistoryConsumer) process(ctx context.Context, msg amqp.Delivery) error 
 }
 
 // parse 解析对话信息
-func parse(his *history.History) {
+func parse(his *history.History) error {
 	reportApp := bailian.GetBLReportApp()
 	report, err := reportApp.Call(buildMsg(his))
 	if err != nil {
 		log.Error("call build error:", err)
-		return
+		return err
 	}
 	his.Name = report.Name
 	his.Class = report.Class
@@ -157,7 +159,7 @@ func parse(his *history.History) {
 		Grade:      report.Report.Grade,
 		Suggestion: report.Report.Suggestion,
 	}
-	return
+	return err
 }
 
 // buildMsg 拼接消息

@@ -106,7 +106,7 @@ func (p *HistoryProducer) Produce(ctx context.Context, sessionId string, start, 
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	// 发布持久化消息
-	err = p.channel.PublishWithContext(ctx, "chat_history", "history.end",
+	err = p.channel.PublishWithContext(ctx, "chat_history_huasi", "history.huasi.end",
 		false, false,
 		amqp.Publishing{
 			DeliveryMode: amqp.Persistent,

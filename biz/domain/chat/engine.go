@@ -283,17 +283,19 @@ func (e *Engine) history(ai, user chan string) {
 			if !ok {
 				ai = nil
 			}
-			err := e.rs.AddAi(e.sessionId, his)
-			if err != nil {
-				log.Error("ai history err:", err)
+			if his != "" {
+				if err := e.rs.AddAi(e.sessionId, his); err != nil {
+					log.Error("ai history err:", err)
+				}
 			}
 		case his, ok := <-user:
 			if !ok {
 				user = nil
 			}
-			err := e.rs.AddUser(e.sessionId, his)
-			if err != nil {
-				log.Error("user history err:", err)
+			if his != "" {
+				if err := e.rs.AddUser(e.sessionId, his); err != nil {
+					log.Error("user history err:", err)
+				}
 			}
 		}
 	}
@@ -301,12 +303,6 @@ func (e *Engine) history(ai, user chan string) {
 
 // Close 结束本轮对话
 func (e *Engine) Close() {
-	defer func() {
-		// 关闭所有协程
-		e.cancel()
-		_ = e.close()
-	}()
-
 	// 发送结束标识
 	err := e.ws.WriteJSON(&dto.ChatEndResp{
 		Code: 0,
@@ -316,6 +312,8 @@ func (e *Engine) Close() {
 		log.Error(err.Error())
 		return
 	}
+	e.cancel()
+	_ = e.close()
 	// 发送对话历史记录消息
 	if err = e.provider.Produce(e.ctx, e.sessionId, e.startTime, time.Now()); err != nil {
 		log.Error("消息发送失败, sessionId: ", e.sessionId)

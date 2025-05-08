@@ -62,7 +62,6 @@ func (ws *WsHelper) WriteJSON(obj any) error {
 func (ws *WsHelper) WriteBytes(bytes []byte) error {
 	ws.mu.Lock()
 	defer ws.mu.Unlock()
-
 	return ws.conn.WriteMessage(websocket.BinaryMessage, bytes)
 }
 

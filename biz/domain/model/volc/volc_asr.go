@@ -167,6 +167,9 @@ func (app *VcAsrApp) Receive() (string, error) {
 		log.Error("ws is nil")
 	}
 	mt, res, err := app.ws.ReadMessage()
+	if websocket.IsCloseError(err, websocket.CloseNormalClosure) {
+		return "", io.EOF
+	}
 	if err != nil {
 		return "", err
 	}
@@ -211,7 +214,10 @@ func (app *VcAsrApp) receiveBytes(res []byte) (string, error) {
 
 // Close 释放资源
 func (app *VcAsrApp) Close() error {
-	return app.ws.Close()
+	if app.ws != nil {
+		return app.ws.Close()
+	}
+	return nil
 }
 
 // parse 解析响应帧
