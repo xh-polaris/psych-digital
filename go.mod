@@ -1,6 +1,7 @@
 module github.com/xh-polaris/psych-digital
 
 go 1.22.0
+toolchain go1.24.1
 
 require (
 	github.com/bytedance/gopkg v0.1.1
@@ -12,7 +13,6 @@ require (
 	github.com/gorilla/websocket v1.5.3
 	github.com/hertz-contrib/obs-opentelemetry/tracing v0.4.1
 	github.com/hertz-contrib/websocket v0.2.0
-	github.com/kitex-contrib/monitor-prometheus v0.2.0
 	github.com/rabbitmq/amqp091-go v1.9.0
 	github.com/xh-polaris/gopkg v0.0.0-20250312141711-7327267f4ea6
 	github.com/xh-polaris/service-idl-gen-go v0.0.0-20250108075223-4036ab37c8b4
@@ -79,7 +79,7 @@ require (
 	go.opentelemetry.io/proto/otlp v1.3.1 // indirect
 	go.uber.org/automaxprocs v1.6.0 // indirect
 	golang.org/x/arch v0.6.0 // indirect
-	golang.org/x/crypto v0.33.0 // indirect
+	golang.org/x/crypto v0.35.0 // indirect
 	golang.org/x/sync v0.11.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
