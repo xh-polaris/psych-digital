@@ -65,6 +65,9 @@ type Engine struct {
 
 	// provider 消息生产者
 	provider *mq.HistoryProducer
+
+	// parenthesis 是否在括号内
+	parenthesis int
 }
 
 // NewEngine 初始化一个ChatEngine
@@ -87,6 +90,7 @@ func NewEngine(ctx context.Context, conn *websocket.Conn) *Engine {
 		stop:        make(chan bool),
 		startTime:   time.Now(),
 		provider:    mq.GetHistoryProducer(),
+		parenthesis: 0,
 	}
 	return e
 }
@@ -209,6 +213,7 @@ func (e *Engine) streamCall(msg string) {
 			}
 			// 风险分析
 			analyse(&data.Content)
+			data.Content = e.strip(data.Content)
 			// 写入文本, 用于音频合成
 			e.outw <- data.Content
 			// 写入响应 TODO: test待删除
@@ -351,4 +356,19 @@ func analyse(text *string) {
 		}
 		*text = strings.Replace(*text, "&", " ", -1)
 	}
+}
+
+// strip 去除括号内的内容
+func (e *Engine) strip(content string) string {
+	var sb strings.Builder
+	for _, s := range content {
+		if s == '(' {
+			e.parenthesis++
+		} else if s == ')' {
+			e.parenthesis--
+		} else if e.parenthesis == 0 {
+			sb.WriteRune(s)
+		}
+	}
+	return sb.String()
 }
