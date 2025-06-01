@@ -7,6 +7,12 @@ type (
 		Timestamp int64 `json:"timestamp"`
 		// 使用者标记
 		From string `json:"from"`
+		// 单位id
+		UnitId string `json:"unitId"`
+		// 学号
+		StudentId string `json:"studentId"`
+		// 密码
+		Password string `json:"password"`
 	}
 
 	// ChatReq 对话请求

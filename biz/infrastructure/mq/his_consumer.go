@@ -7,7 +7,10 @@ import (
 	"github.com/xh-polaris/gopkg/util/log"
 	"github.com/xh-polaris/psych-digital/biz/domain"
 	"github.com/xh-polaris/psych-digital/biz/domain/model/bailian"
+	"github.com/xh-polaris/psych-digital/biz/infrastructure/config"
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/mapper/history"
+	"github.com/xh-polaris/psych-digital/biz/infrastructure/rpc/psych_user"
+	"github.com/xh-polaris/psych-idl/kitex_gen/user"
 	"golang.org/x/net/context"
 	"os"
 	"os/signal"
@@ -20,12 +23,14 @@ import (
 type HistoryConsumer struct {
 	conn   *amqp.Connection
 	finish chan struct{}
+	psychU psych_user.IPsychUser
 }
 
 // NewHistoryConsumer 创建一个消费者
 func NewHistoryConsumer() *HistoryConsumer {
 	return &HistoryConsumer{
-		conn: getConn(),
+		conn:   getConn(),
+		psychU: psych_user.NewPsychUser(config.GetConfig()),
 	}
 }
 
@@ -97,13 +102,27 @@ func (c *HistoryConsumer) osSignalHandler(ctx context.Context) {
 // process 实际消费逻辑
 func (c *HistoryConsumer) process(ctx context.Context, msg amqp.Delivery) error {
 	var m map[string]interface{}
-	if err := json.Unmarshal(msg.Body, &m); err != nil {
+	var err error
+
+	if err = json.Unmarshal(msg.Body, &m); err != nil {
 		return err
 	}
 
 	session := m["sessionId"].(string)
 	start := int64(m["start"].(float64))
 	end := int64(m["end"].(float64))
+	unitId := m["unitId"].(string)
+	userId := m["userId"].(string)
+	studentId := m["studentId"].(string)
+
+	var res *user.UserGetInfoResp
+
+	if res, err = c.psychU.UserGetInfo(context.Background(), &user.UserGetInfoReq{
+		UserId: userId,
+		UnitId: &unitId,
+	}); err != nil {
+		return err
+	}
 
 	rs := domain.GetRedisHelper()
 	histories, err := rs.Load(session)
@@ -120,7 +139,11 @@ func (c *HistoryConsumer) process(ctx context.Context, msg amqp.Delivery) error 
 		dialogs = append(dialogs, dia)
 	}
 	his := &history.History{
+		Name:      res.User.Name,
+		Class:     res.Options.Value[1],
+		StudentId: studentId,
 		Dialogs:   dialogs,
+		Report:    nil,
 		StartTime: time.Unix(start, 0),
 		EndTime:   time.Unix(end, 0),
 	}
@@ -150,8 +173,6 @@ func parse(his *history.History) error {
 		log.Error("call build error:", err)
 		return err
 	}
-	his.Name = report.Name
-	his.Class = report.Class
 	his.Report = &history.Report{
 		Keywords:   report.Report.Keywords,
 		Type:       report.Report.Type,

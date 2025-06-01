@@ -90,12 +90,15 @@ func GetHistoryProducer() *HistoryProducer {
 }
 
 // Produce 创建历史记录消息
-func (p *HistoryProducer) Produce(ctx context.Context, sessionId string, start, end time.Time) error {
+func (p *HistoryProducer) Produce(ctx context.Context, sessionId, userId, unitId, studentId string, start, end time.Time) error {
 	// 构造消息体
 	msg := map[string]interface{}{
 		"sessionId": sessionId,
 		"start":     start.Unix(),
 		"end":       end.Unix(),
+		"userId":    userId,
+		"unitId":    unitId,
+		"studentId": studentId,
 	}
 
 	body, err := json.Marshal(msg)

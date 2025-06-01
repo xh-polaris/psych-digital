@@ -13,7 +13,9 @@ import (
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/config"
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/consts"
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/mq"
+	"github.com/xh-polaris/psych-digital/biz/infrastructure/rpc/psych_user"
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/util"
+	"github.com/xh-polaris/psych-idl/kitex_gen/user"
 	"io"
 	"strings"
 	"time"
@@ -66,8 +68,17 @@ type Engine struct {
 	// provider 消息生产者
 	provider *mq.HistoryProducer
 
+	// psychU 下游用户服务
+	psychU psych_user.IPsychUser
+
 	// parenthesis 是否在括号内
 	parenthesis int
+
+	// 对话轮数
+	round     int
+	userId    string
+	unitId    string
+	studentId string
 }
 
 // NewEngine 初始化一个ChatEngine
@@ -91,6 +102,8 @@ func NewEngine(ctx context.Context, conn *websocket.Conn) *Engine {
 		startTime:   time.Now(),
 		provider:    mq.GetHistoryProducer(),
 		parenthesis: 0,
+		psychU:      psych_user.NewPsychUser(c),
+		round:       0,
 	}
 	return e
 }
@@ -130,14 +143,30 @@ func (e *Engine) Start() error {
 // validate 校验使用者信息, 目前没有鉴权，只做一下日志
 func (e *Engine) validate() bool {
 	var startReq dto.ChatStartReq
+	var err error
 
-	err := e.ws.ReadJSON(&startReq)
+	err = e.ws.ReadJSON(&startReq)
 	if err != nil {
 		log.Error("read json err:", err)
 		return false
 	}
 	log.Info("调用方: %s, 调用时间: %s", startReq.From, time.Unix(startReq.Timestamp, 0).String())
-	return true
+	// 登录逻辑
+	unitId, studentId, password := startReq.UnitId, startReq.StudentId, startReq.Password
+	var res *user.UserSignInResp
+
+	if res, err = e.psychU.UserSignIn(context.Background(), &user.UserSignInReq{
+		UnitId:   unitId,
+		AuthType: 2, // 学号登录
+		AuthId:   studentId,
+		Password: &password,
+	}); err == nil {
+		e.userId = res.UserId
+		e.unitId = res.UnitId
+		e.studentId = res.StudentId
+		return true
+	}
+	return false
 }
 
 // Chat 长对话的主体部分 #生产者
@@ -173,6 +202,7 @@ func (e *Engine) Chat() {
 		}
 		// 写入用户消息
 		e.userHistory <- req.Msg
+		e.round++
 		// 调用ai, 流式响应
 		go e.streamCall(req.Msg)
 	}
@@ -319,9 +349,11 @@ func (e *Engine) Close() {
 	}
 	e.cancel()
 	_ = e.close()
-	// 发送对话历史记录消息
-	if err = e.provider.Produce(e.ctx, e.sessionId, e.startTime, time.Now()); err != nil {
-		log.Error("消息发送失败, sessionId: ", e.sessionId)
+	// 发送对话历史记录消息, 需要用户对话轮数大于2
+	if e.round >= 2 {
+		if err = e.provider.Produce(e.ctx, e.sessionId, e.userId, e.unitId, e.studentId, e.startTime, time.Now()); err != nil {
+			log.Error("消息发送失败, sessionId: ", e.sessionId)
+		}
 	}
 
 }

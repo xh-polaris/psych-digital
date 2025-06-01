@@ -7,6 +7,7 @@ type History struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	Name      string             `bson:"name" json:"name"`
 	Class     string             `bson:"class" json:"class"`
+	StudentId string             `bson:"studentId" json:"studentId"`
 	Dialogs   []*Dialog          `bson:"dialogs" json:"dialogs"`
 	Report    *Report            `bson:"report" json:"report"`
 	StartTime time.Time          `bson:"start_time" json:"start_time"`

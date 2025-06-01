@@ -42,6 +42,7 @@ func (s *HistoryService) ListHistory(ctx context.Context, req *cmd.ListHistoryRe
 			ID:        h.ID.Hex(),
 			Name:      h.Name,
 			Class:     h.Class,
+			StudentId: h.StudentId,
 			Dialogs:   dia,
 			StartTime: h.StartTime.Unix(),
 			EndTime:   h.EndTime.Unix(),

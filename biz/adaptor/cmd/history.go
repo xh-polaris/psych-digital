@@ -16,6 +16,7 @@ type History struct {
 	ID        string    `json:"id,omitempty"`
 	Name      string    `json:"name"`
 	Class     string    `json:"class"`
+	StudentId string    `json:"student_id"`
 	Dialogs   []*Dialog `json:"dialogs"`
 	Report    *Report   `json:"report"`
 	StartTime int64     `json:"start_time"`
