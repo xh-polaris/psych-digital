@@ -116,5 +116,6 @@ func (p *HistoryProducer) Produce(ctx context.Context, sessionId, userId, unitId
 			ContentType:  "application/json",
 			Body:         body,
 		})
+	log.Info("发送消息 %v", msg)
 	return err
 }

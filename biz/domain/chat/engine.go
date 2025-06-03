@@ -79,6 +79,7 @@ type Engine struct {
 	userId    string
 	unitId    string
 	studentId string
+	name      string
 }
 
 // NewEngine 初始化一个ChatEngine
@@ -104,6 +105,7 @@ func NewEngine(ctx context.Context, conn *websocket.Conn) *Engine {
 		parenthesis: 0,
 		psychU:      psych_user.NewPsychUser(c),
 		round:       0,
+		name:        "",
 	}
 	return e
 }
@@ -118,7 +120,7 @@ func (e *Engine) Start() error {
 		return consts.ErrInvalidUser
 	}
 
-	msg := "你好呀"
+	msg := "你好呀, 我是" + e.name
 
 	// 音频生成
 	if err = e.tts(); err != nil {
@@ -160,13 +162,27 @@ func (e *Engine) validate() bool {
 		AuthType: 2, // 学号登录
 		AuthId:   studentId,
 		Password: &password,
-	}); err == nil {
-		e.userId = res.UserId
-		e.unitId = res.UnitId
-		e.studentId = res.StudentId
-		return true
+	}); err != nil {
+		return false
 	}
-	return false
+	e.userId = res.UserId
+	e.unitId = res.UnitId
+	e.studentId = res.StudentId
+	var resp *user.UserGetInfoResp
+
+	if resp, err = e.psychU.UserGetInfo(context.Background(), &user.UserGetInfoReq{
+		UserId: res.UserId,
+		UnitId: &unitId,
+	}); err != nil {
+		return false
+	}
+	e.name = resp.User.Name
+	if err = e.ws.WriteJSON(map[string]string{
+		"name": e.name,
+	}); err != nil {
+		return false
+	}
+	return true
 }
 
 // Chat 长对话的主体部分 #生产者
