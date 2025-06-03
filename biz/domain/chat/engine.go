@@ -80,6 +80,7 @@ type Engine struct {
 	unitId    string
 	studentId string
 	name      string
+	class     string
 }
 
 // NewEngine 初始化一个ChatEngine
@@ -120,7 +121,7 @@ func (e *Engine) Start() error {
 		return consts.ErrInvalidUser
 	}
 
-	msg := "你好呀, 我是" + e.name
+	msg := "你好呀, 我是" + e.class + "的" + e.name
 
 	// 音频生成
 	if err = e.tts(); err != nil {
@@ -177,8 +178,10 @@ func (e *Engine) validate() bool {
 		return false
 	}
 	e.name = resp.User.Name
+	e.class = resp.Options.Value[1]
 	if err = e.ws.WriteJSON(map[string]string{
-		"name": e.name,
+		"name":  e.name,
+		"class": e.class,
 	}); err != nil {
 		return false
 	}
