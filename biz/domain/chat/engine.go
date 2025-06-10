@@ -373,6 +373,8 @@ func (e *Engine) Close() {
 		if err = e.provider.Produce(e.ctx, e.sessionId, e.userId, e.unitId, e.studentId, e.startTime, time.Now()); err != nil {
 			log.Error("消息发送失败, sessionId: ", e.sessionId)
 		}
+	} else {
+		log.Info("对话记录过少, 不进行报告生成")
 	}
 
 }
