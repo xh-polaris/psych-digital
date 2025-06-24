@@ -14,7 +14,7 @@ require (
 	github.com/hertz-contrib/websocket v0.2.0
 	github.com/rabbitmq/amqp091-go v1.9.0
 	github.com/xh-polaris/gopkg v0.0.0-20250312141711-7327267f4ea6
-	github.com/xh-polaris/psych-idl v0.0.0-20250601073101-8288eb562e98
+	github.com/xh-polaris/psych-idl v0.0.0-20250624135159-4026b86f6dbb
 	github.com/xh-polaris/service-idl-gen-go v0.0.0-20250108075223-4036ab37c8b4
 	github.com/zeromicro/go-zero v1.8.1
 	go.mongodb.org/mongo-driver v1.17.3

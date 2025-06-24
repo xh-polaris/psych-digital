@@ -425,6 +425,8 @@ github.com/xh-polaris/gopkg v0.0.0-20250312141711-7327267f4ea6 h1:5LzTSKpK7rMv9T
 github.com/xh-polaris/gopkg v0.0.0-20250312141711-7327267f4ea6/go.mod h1:C+TEAEky4WkrDpxzCDCxVi968lxZ15HwrdVxWrbL42Y=
 github.com/xh-polaris/psych-idl v0.0.0-20250601073101-8288eb562e98 h1:Q4RaFS/EoT17Zc12MkdDJAovZaEWOT87dmSmLhsM0JY=
 github.com/xh-polaris/psych-idl v0.0.0-20250601073101-8288eb562e98/go.mod h1:Mq9OKYzoq5fzibYWoxdO0xsybjShIVJ4XLKu/IpVWHw=
+github.com/xh-polaris/psych-idl v0.0.0-20250624135159-4026b86f6dbb h1:IRku9goyaKC9Pgm3uPSn98FKxRKrC2sPfKmk1UtVVuk=
+github.com/xh-polaris/psych-idl v0.0.0-20250624135159-4026b86f6dbb/go.mod h1:Mq9OKYzoq5fzibYWoxdO0xsybjShIVJ4XLKu/IpVWHw=
 github.com/xh-polaris/service-idl-gen-go v0.0.0-20250108075223-4036ab37c8b4 h1:SQE9JSehJufW87A3374EW90w+E9EonWozha+YW/277Q=
 github.com/xh-polaris/service-idl-gen-go v0.0.0-20250108075223-4036ab37c8b4/go.mod h1:3ixuadpEpTumm8RftVwtXYH8Zfmu6shi33Hh5GKC6cU=
 github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78 h1:ilQV1hzziu+LLM3zUTJ0trRztfwgjqKnBWNtSRkbmwM=

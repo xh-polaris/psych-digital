@@ -140,7 +140,7 @@ func (c *HistoryConsumer) process(ctx context.Context, msg amqp.Delivery) error 
 	}
 	his := &history.History{
 		Name:      res.User.Name,
-		Class:     res.Options.Value[1],
+		Class:     res.Options.Options[1].Value,
 		StudentId: studentId,
 		Dialogs:   dialogs,
 		Report:    nil,

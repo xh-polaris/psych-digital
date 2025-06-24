@@ -81,6 +81,7 @@ type Engine struct {
 	studentId string
 	name      string
 	class     string
+	gender    int32
 }
 
 // NewEngine 初始化一个ChatEngine
@@ -168,7 +169,7 @@ func (e *Engine) validate() bool {
 	}
 	e.userId = res.UserId
 	e.unitId = res.UnitId
-	e.studentId = res.StudentId
+	e.studentId = *res.StudentId
 	var resp *user.UserGetInfoResp
 
 	if resp, err = e.psychU.UserGetInfo(context.Background(), &user.UserGetInfoReq{
@@ -178,10 +179,12 @@ func (e *Engine) validate() bool {
 		return false
 	}
 	e.name = resp.User.Name
-	e.class = resp.Options.Value[1]
-	if err = e.ws.WriteJSON(map[string]string{
-		"name":  e.name,
-		"class": e.class,
+	e.class = resp.Options.Options[1].Value
+	e.gender = resp.User.Gender
+	if err = e.ws.WriteJSON(map[string]any{
+		"name":   e.name,
+		"class":  e.class,
+		"gender": e.gender,
 	}); err != nil {
 		return false
 	}
