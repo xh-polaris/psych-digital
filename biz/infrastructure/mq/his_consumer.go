@@ -2,6 +2,12 @@ package mq
 
 import (
 	"encoding/json"
+	"os"
+	"os/signal"
+	"strings"
+	"syscall"
+	"time"
+
 	"github.com/bytedance/gopkg/util/gopool"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/xh-polaris/gopkg/util/log"
@@ -10,13 +16,9 @@ import (
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/config"
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/mapper/history"
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/rpc/psych_user"
+	"github.com/xh-polaris/psych-digital/biz/infrastructure/util"
 	"github.com/xh-polaris/psych-idl/kitex_gen/user"
 	"golang.org/x/net/context"
-	"os"
-	"os/signal"
-	"strings"
-	"syscall"
-	"time"
 )
 
 // HistoryConsumer 消费聊天记录并生成报表
@@ -138,9 +140,13 @@ func (c *HistoryConsumer) process(ctx context.Context, msg amqp.Delivery) error 
 		}
 		dialogs = append(dialogs, dia)
 	}
+	form, err := util.Anypb2Any(res.Form)
+	if err != nil {
+		return err
+	}
 	his := &history.History{
 		Name:      res.User.Name,
-		Class:     res.Options.Options[1].Value,
+		Class:     form["class"].(string),
 		StudentId: studentId,
 		Dialogs:   dialogs,
 		Report:    nil,

@@ -3,11 +3,13 @@ package adaptor
 import (
 	"context"
 	"errors"
+
 	"github.com/xh-polaris/gopkg/util"
 	"github.com/xh-polaris/gopkg/util/log"
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/config"
 
 	"encoding/json"
+
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/xh-polaris/service-idl-gen-go/kitex_gen/basic"

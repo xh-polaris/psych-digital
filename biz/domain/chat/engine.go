@@ -3,6 +3,10 @@ package chat
 import (
 	"context"
 	"errors"
+	"io"
+	"strings"
+	"time"
+
 	"github.com/hertz-contrib/websocket"
 	"github.com/xh-polaris/gopkg/util/log"
 	"github.com/xh-polaris/psych-digital/biz/application/dto"
@@ -16,9 +20,6 @@ import (
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/rpc/psych_user"
 	"github.com/xh-polaris/psych-digital/biz/infrastructure/util"
 	"github.com/xh-polaris/psych-idl/kitex_gen/user"
-	"io"
-	"strings"
-	"time"
 )
 
 // Engine 是处理一轮对话的核心对象
@@ -160,10 +161,10 @@ func (e *Engine) validate() bool {
 	var res *user.UserSignInResp
 
 	if res, err = e.psychU.UserSignIn(context.Background(), &user.UserSignInReq{
-		UnitId:   unitId,
-		AuthType: 2, // 学号登录
-		AuthId:   studentId,
-		Password: &password,
+		UnitId:     unitId,
+		AuthType:   1, // 学号登录
+		AuthId:     studentId,
+		VerifyCode: password,
 	}); err != nil {
 		return false
 	}
@@ -179,7 +180,11 @@ func (e *Engine) validate() bool {
 		return false
 	}
 	e.name = resp.User.Name
-	e.class = resp.Options.Options[1].Value
+	form, err := util.Anypb2Any(resp.Form)
+	if err != nil {
+		return false
+	}
+	e.class = form["class"].(string)
 	e.gender = resp.User.Gender
 	if err = e.ws.WriteJSON(map[string]any{
 		"name":   e.name,
