@@ -4,18 +4,19 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/bytedance/gopkg/lang/fastrand"
-	"github.com/golang/glog"
-	"github.com/google/uuid"
-	"github.com/gorilla/websocket"
-	"github.com/xh-polaris/gopkg/util/log"
-	"github.com/xh-polaris/psych-digital/biz/domain/model"
 	"io"
 	"net/http"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/bytedance/gopkg/lang/fastrand"
+	"github.com/golang/glog"
+	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
+	"github.com/xh-polaris/gopkg/util/log"
+	"github.com/xh-polaris/psych-digital/biz/domain/model"
 )
 
 var _ model.TtsApp = (*VcTtsApp)(nil)

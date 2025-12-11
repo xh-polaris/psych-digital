@@ -423,9 +423,9 @@ func analyse(text *string) {
 func (e *Engine) strip(content string) string {
 	var sb strings.Builder
 	for _, s := range content {
-		if s == '(' {
+		if s == '(' || s == '（' || s == '[' {
 			e.parenthesis++
-		} else if s == ')' {
+		} else if s == ')' || s == '）' || s == ']' {
 			e.parenthesis--
 		} else if e.parenthesis == 0 {
 			sb.WriteRune(s)
